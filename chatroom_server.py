@@ -13,7 +13,7 @@ import socket
 import random
 import string
 import threading
-from cryptography.fernet import Fernet
+import hashlib, uuid
 
 class ChatRoom:
     '''
@@ -22,7 +22,7 @@ class ChatRoom:
     INSERT DOCS HERE
 
     '''
-    def __init__(self, name, port, password=None, encryption=None):
+    def __init__(self, name, port, password=None, salt=None):
         '''
         CONSTRUCTOR DOCS
 
@@ -31,7 +31,7 @@ class ChatRoom:
         self.name = name
         self.port = port
         self.password = password
-        self.encryption = encryption
+        self.salt = salt
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind(('', self.port))
 
@@ -97,9 +97,9 @@ class ManagerServer:
                 if message_tokens[0] == 'USER':
                     if message_tokens[1] not in self.users.keys():
                         self.users[addr] = message_tokens[1]
-                        connectionSocket.send('User name added 0 \r\n'.encode())
+                        connectionSocket.send('User name added 0\r\n'.encode())
                     else:
-                        connectionSocket.send('User name in use 1 \r\n'.encode())
+                        connectionSocket.send('User name in use 1\r\n'.encode())
 
                 # ROOM roomname *password*
                 # Creates a room with the given room name and password. Password is
@@ -107,21 +107,21 @@ class ManagerServer:
                 elif message_tokens[0] == 'ROOM':
                     if message_tokens[2] not in self.chat_rooms.keys():
                         if len(message_tokens) > 3:
-                            key = Fernet.generate_key()
-                            pas = Fernet(key).encrypt(message_tokens[2].encode())
+                            salt = uuid.uuid4().hex.encode()
+                            pas = hashlib.sha512(message_tokens[3].encode() + salt).hexdigest()
                         else:
                             pas = None
-                            key = None
+                            salt = None
 
                         udp_port = message_tokens[1]
                         new_addr = (addr[0], int(udp_port))
 
                         port = random.randint(25001, 50000)
-                        self.chat_rooms[message_tokens[2]] = ChatRoom(message_tokens[2], port, pas, key)
+                        self.chat_rooms[message_tokens[2]] = ChatRoom(message_tokens[2], port, pas, salt)
                         self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
-                        connectionSocket.send('ChatRoom established and joined {0} 0 \r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
+                        connectionSocket.send('ChatRoom established and joined {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
                     else:
-                        connectionSocket.send('ChatRoom name in use 1 \r\n'.encode())
+                        connectionSocket.send('ChatRoom name in use 1\r\n'.encode())
 
                 # JOIN roomname *password*
                 # Joins a room with the given room name and password. Password is
@@ -136,17 +136,19 @@ class ManagerServer:
                         udp_port = message_tokens[1]
                         new_addr = (addr[0], int(udp_port))
 
-                        if (Fernet(self.chat_rooms[message_tokens[2]].encryption).decrypt(self.chat_rooms[message_tokens[2]].password) == pas.encode()) or (pas is None and self.chat_rooms[message_tokens[2]].password is None):
-                            connectionSocket.send('Connected to chat room {0} 0 \r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
+                        if (pas is None and self.chat_rooms[message_tokens[2]].password is None) or (hashlib.sha512(pas.encode() + self.chat_rooms[message_tokens[2]].salt).hexdigest() == self.chat_rooms[message_tokens[2]].password):
+                            connectionSocket.send('Connected to chat room {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
                             self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
                         else:
-                            connectionSocket.send('Incorrect password 1 \r\n'.encode())
+                            connectionSocket.send('Incorrect password 1\r\n'.encode())
+                    else:
+                        connectionSocket.send('Invlaid room 1\r\n'.encode())
 
                 else:
-                    connectionSocket.send('Invalid command 1 \r\n'.encode())
+                    connectionSocket.send('Invalid command 1\r\n'.encode())
 
             else:
-                connectionSocket.send('Invalid command 1 \r\n'.encode())
+                connectionSocket.send('Invalid command 1\r\n'.encode())
 
 
 if __name__ == '__main__':
