@@ -8,7 +8,7 @@ import threading
 sT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 p = random.randint(30000, 60000)
 sT.bind(('', p))
-sT.connect(('localhost', 25000))
+sT.connect(('Colby-GL62M-7RDX.ddns.wooster.edu', 25000))
 sU = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 p2 = random.randint(30000, 60000)
 sU.bind(('', p2))
@@ -26,7 +26,7 @@ def handle_room(room_port):
 def send_room(room_port):
     while True:
         asdf = input()
-        sU.sendto(asdf.encode(), ('localhost', room_port))
+        sU.sendto(asdf.encode(), ('Colby-GL62M-7RDX.ddns.wooster.edu', room_port))
 
 
 def recieve_room(room_port):

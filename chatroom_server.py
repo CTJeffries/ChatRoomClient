@@ -74,6 +74,9 @@ class ManagerServer:
         self.chat_rooms = {}
         self.users = {}
 
+        # Guest counter.
+        self.guest_counter = 1
+
         # Initialize entry point socket.
         self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serverPort = 25000
@@ -90,12 +93,18 @@ class ManagerServer:
     def on_new_client(self, connectionSocket, addr):
         while True:
             message = connectionSocket.recv(1024)
+            if addr not in self.users.keys():
+                self.users[addr] = 'Guest {}'.format(self.guest_counter)
+                self.guest_counter += 1
+                if self.guest_counter > 99999:
+                    self.guest_counter = 1
+
             if message:
                 message_tokens = message.decode().split()
                 # USER username
                 # Adds uers to the global list of users.
                 if message_tokens[0] == 'USER':
-                    if message_tokens[1] not in self.users.keys():
+                    if message_tokens[1] not in self.users.values():
                         self.users[addr] = message_tokens[1]
                         connectionSocket.send('User name added 0\r\n'.encode())
                     else:
