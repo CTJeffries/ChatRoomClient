@@ -4,67 +4,99 @@
 import socket
 import random
 import threading
-
-sT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-p = random.randint(30000, 60000)
-sT.bind(('', p))
-sT.connect(('Colby-GL62M-7RDX.ddns.wooster.edu', 25000))
-sU = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-p2 = random.randint(30000, 60000)
-sU.bind(('', p2))
+import tkinter as tk
 
 
-def handle_room(room_port):
-    rcv_thread = threading.Thread(target=recieve_room, args=(room_port,))
-    rcv_thread.start()
-    send_thread = threading.Thread(target=send_room, args=(room_port,))
-    send_thread.start()
-    rcv_thread.join()
-    send_thread.join()
+class LoginWindow(object):
+    '''
+    DOCS
+    '''
+    def __init__(self, parent):
+        self.parent = parent
+        self.window = tk.Toplevel(parent)
+        self.name = tk.StringVar()
+        self.name.set('')
+        self.entry = tk.Entry(self.window, textvariable=self.name)
+        self.entry.pack()
+        self.enter = tk.Button(self.window, text='Ok', command=self.check_name)
+        self.enter.pack()
 
 
-def send_room(room_port):
-    while True:
-        asdf = input()
-        sU.sendto(asdf.encode(), ('Colby-GL62M-7RDX.ddns.wooster.edu', room_port))
+    def check_name(self):
+        if (len(self.name.get()) >= 3 or len(self.name.get()) <= 20) or (self.name.get() == ''):
+            self.window.destroy()
 
 
-def recieve_room(room_port):
-    while True:
-        data, addr = sU.recvfrom(1024)
-        print(data.decode())
+    def run(self):
+        self.window.wait_window()
+        return self.name.get()
 
 
-def basic_client():
-    while True:
-        x = input('Enter command: ')
+class PassWindow():
+    '''
+    DOCS
+    '''
+    def __init__(self, parent):
+        self.parent = parent
+        self.window = tk.Toplevel(parent)
+        self.password = tk.StringVar()
+        self.password.set('')
+        # Widgets HERE
+        self.window.wait_window()
+        return self.password.get()
 
-        if x == 'USER':
-            y = input('Enter username: ')
-            sT.send(('USER ' + y).encode())
-            message = sT.recv(1024).decode()
-            print(message)
 
-        elif x == 'ROOM':
-            y = input('Enter room name: ')
-            z = input('Enter room password: ')
-            sT.send(('ROOM ' + str(p2) + ' ' + y + ' ' + z).encode())
-            message = sT.recv(1024).decode()
-            print(message)
-            if message.split()[-1] == '0':
-                room_port = int(message.split()[-2])
-                handle_room(room_port)
+class MainWindow(tk.Frame):
+    '''
+    DOCS
+    '''
+    def __init__(self, parent):
+        self.parent = parent
+        tk.Frame.__init__(self, parent)
+        # Widgets HERE
+        name = LoginWindow(self).run()
+        if name != '':
+            # Send name.
+            pass
 
-        elif x == 'JOIN':
-            y = input('Enter room name: ')
-            z = input('Enter room password: ')
-            sT.send(('JOIN ' + str(p2) + ' ' + y + ' ' + z).encode())
-            message = sT.recv(1024).decode()
-            print(message)
-            if message.split()[-1] == '0':
-                room_port = int(message.split()[-2])
-                handle_room(room_port)
+    def new_room():
+        # Open new room window, then when its complete, open chatroom window.
+        pass
 
+
+    def refresh():
+        # Get fresh list of rooms and update widget.
+        pass
+
+
+    def join_room():
+        # Open pass window if there is a password, if not, open chat window.
+        pass
+
+
+
+class CreateRoomWindow():
+    '''
+    DOCS
+    '''
+    def __init__(self, parent):
+        self.parent = parent
+        # WIDGETS HERE
+
+    def check_name():
+        # Check if room name is ok.
+        pass
+
+
+class ChatRoomWindow():
+    '''
+    DOCS
+    '''
+    def __init__(self, parent):
+        self.parent = parent
+        # WIDGETS HERE
 
 if __name__ == '__main__':
-    basic_client()
+    root = tk.Tk()
+    app = MainWindow(root)
+    app.mainloop()
