@@ -14,8 +14,6 @@ import random
 import string
 import threading
 import hashlib, uuid
-import websockets
-import asyncio
 
 class ChatRoom:
     '''
@@ -92,7 +90,7 @@ class ManagerServer:
             thread = threading.Thread(target=self.on_new_client, args=(connectionSocket, addr))
             thread.start()
 
-    async def on_new_client(self, connectionSocket, addr):
+    def on_new_client(self, connectionSocket, addr):
         while True:
             message = connectionSocket.recv(1024)
             if addr not in self.users.keys():

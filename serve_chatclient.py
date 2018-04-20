@@ -6,8 +6,8 @@ from flask import Flask, send_from_directory
 
 app = Flask(__name__)
 
-@app.route('/chatclient')
-def send_client():
+@app.route('/chatclient/source')
+def send_client_source():
     return send_from_directory(os.getcwd(), 'chatroom_client.py')
 
 if __name__ == '__main__':
