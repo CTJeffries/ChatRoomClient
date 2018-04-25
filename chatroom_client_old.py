@@ -26,8 +26,10 @@ def handle_room(room_port):
 def send_room(room_port):
     while True:
         asdf = input()
-        sU.sendto(asdf.encode(), ('ec2-18-216-153-185.us-east-2.compute.amazonaws.com', room_port))
-
+        if asdf.lower() != 'quit':
+            sU.sendto(('MESSAGE ' + asdf).encode(), ('ec2-18-216-153-185.us-east-2.compute.amazonaws.com', room_port))
+        else:
+            sU.sendto('QUIT'.encode(), ('ec2-18-216-153-185.us-east-2.compute.amazonaws.com', room_port))
 
 def recieve_room(room_port):
     while True:
