@@ -159,7 +159,7 @@ class ManagerServer:
                         new_addr = (addr[0], int(udp_port))
 
                         if (pas is None and self.chat_rooms[message_tokens[2]].password is None) or (hashlib.sha512(pas.encode() + self.chat_rooms[message_tokens[2]].salt).hexdigest() == self.chat_rooms[message_tokens[2]].password):
-                            if len(self.chat_rooms[message_tokens[2]].users < self.chat_rooms[message_tokens[2]].max_users):
+                            if len(self.chat_rooms[message_tokens[2]].users) < self.chat_rooms[message_tokens[2]].max_users:
                                 connectionSocket.send('Connected to chat room {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
                                 self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
                         else:
