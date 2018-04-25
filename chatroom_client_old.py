@@ -65,6 +65,17 @@ def basic_client():
                 room_port = int(message.split()[-2])
                 handle_room(room_port)
 
+        elif x == 'INFO':
+            sT.send('INFO'.encode())
+            message = sT.recv(1024).decode()
+            print(message)
+
+        elif x== 'QUIT':
+            sT.send('QUIT'.encode())
+            message = sT.recv(1024).decode()
+            print(message)
+            break
+
 
 if __name__ == '__main__':
     basic_client()

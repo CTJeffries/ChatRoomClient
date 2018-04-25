@@ -14,6 +14,7 @@ import random
 import string
 import threading
 import hashlib, uuid
+import json
 
 class ChatRoom:
     '''
@@ -30,6 +31,7 @@ class ChatRoom:
         self.users = {}
         self.name = name
         self.port = port
+        self.max_users = 64
         self.password = password
         self.salt = salt
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -146,12 +148,32 @@ class ManagerServer:
                         new_addr = (addr[0], int(udp_port))
 
                         if (pas is None and self.chat_rooms[message_tokens[2]].password is None) or (hashlib.sha512(pas.encode() + self.chat_rooms[message_tokens[2]].salt).hexdigest() == self.chat_rooms[message_tokens[2]].password):
-                            connectionSocket.send('Connected to chat room {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
-                            self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
+                            if len(self.chat_rooms[message_tokens[2]].users < self.chat_rooms[message_tokens[2]].max_users):
+                                connectionSocket.send('Connected to chat room {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
+                                self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
                         else:
                             connectionSocket.send('Incorrect password 1\r\n'.encode())
                     else:
                         connectionSocket.send('Invlaid room 1\r\n'.encode())
+
+                elif message_tokens[0] == 'QUIT':
+                    del self.users[addr]
+                    connectionSocket.send('Goodbye! 0\r\n'.encode())
+
+                elif message_tokens[0] == 'INFO':
+                    dict_list = []
+                    for i in self.chat_rooms.values():
+                        temp = {}
+                        temp['name'] = i.name
+                        temp['users'] = len(i.users)
+                        if i.password is None:
+                            temp['pass'] = 0
+                        else:
+                            temp['pass'] = 1
+
+                        dict_list.append(temp)
+
+                    connectionSocket.send(json.dumps(dict_list).encode())
 
                 else:
                     connectionSocket.send('Invalid command 1\r\n'.encode())
