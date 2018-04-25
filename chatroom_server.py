@@ -50,7 +50,6 @@ class ChatRoom:
             pass
         while self.users:
             data, addr = self.socket.recvfrom(1024)
-            print('asdf')
             if data and (addr in self.users.keys()):
                 data = data.decode()
                 if data.split()[0] == 'MESSAGE':
