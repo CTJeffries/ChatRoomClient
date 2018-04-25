@@ -50,16 +50,17 @@ class ChatRoom:
             pass
         while self.users:
             data, addr = self.socket.recvfrom(1024)
+            print('asdf')
             if data and (addr in self.users.keys()):
                 data = data.decode()
                 if data.split()[0] == 'MESSAGE':
                     data = data[7:]
                     data = (self.users[addr] + ': ' + data + '\r\n')
                     for user in self.users.keys():
-                        self.socket.sendto(data.encode(), user)
+                        self.socket.sendto(('MESSAGE '+ data).encode(), user)
 
                 elif data.split()[0] == 'QUIT':
-                    self.socket.sendto('Goodbye! 0\r\n'.encode(), addr)
+                    self.socket.sendto('GOODBYE 0\r\n'.encode(), addr)
                     for user in self.users.keys():
                         if user != addr:
                             self.socket.sendto((self.users[addr] + 'has left the room.').encode(), user)
@@ -135,8 +136,8 @@ class ManagerServer:
                             pas = None
                             salt = None
 
-                        udp_port = message_tokens[1]
-                        new_addr = (addr[0], int(udp_port))
+                        user_port = message_tokens[1]
+                        new_addr = (addr[0], int(user_port))
 
                         port = random.randint(25001, 50000)
                         self.chat_rooms[message_tokens[2]] = ChatRoom(message_tokens[2], port, pas, salt)
