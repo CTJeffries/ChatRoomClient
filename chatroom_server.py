@@ -40,7 +40,7 @@ class ChatRoom:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind(('', self.port))
 
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
 
         self.listener = threading.Thread(target=self.listen, args=())
         self.sender = threading.Thread(target=self.send, args=())
