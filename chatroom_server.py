@@ -16,7 +16,7 @@ import threading
 import hashlib, uuid
 import json
 import time
-import Queue
+import queue
 
 class ChatRoom:
     '''
