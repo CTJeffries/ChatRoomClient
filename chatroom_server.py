@@ -193,10 +193,15 @@ class ManagerServer:
                     else:
                         connectionSocket.send('Invlaid room 1\r\n'.encode())
 
+                # QUIT
+                # Removes the user from the list.
                 elif message_tokens[0] == 'QUIT':
                     del self.users[addr]
                     connectionSocket.send('Goodbye! 0\r\n'.encode())
 
+                # INFO
+                # Returns a JSON list containing information about all of the
+                # rooms.
                 elif message_tokens[0] == 'INFO':
                     dict_list = []
                     for i in self.chat_rooms.values():
