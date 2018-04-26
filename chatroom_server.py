@@ -15,6 +15,7 @@ import string
 import threading
 import hashlib, uuid
 import json
+import time
 
 class ChatRoom:
     '''
@@ -38,11 +39,15 @@ class ChatRoom:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind(('', self.port))
 
-        self.thread = threading.Thread(target=self.run, args=())
-        self.thread.start()
+        self.queue = Queue()
 
+        self.listener = threading.Thread(target=self.listen, args=())
+        self.sender = threading.Thread(target=self.send, args=())
 
-    def run(self):
+        self.listener.start()
+        self.sender.start()
+
+    def listen(self):
         '''
         DOCS
 
@@ -55,21 +60,35 @@ class ChatRoom:
                 data = data.decode()
                 if data.split()[0] == 'MESSAGE':
                     data = data[7:]
-                    data = (self.users[addr] + ': ' + data + '\r\n')
-                    for user in self.users.keys():
-                        self.socket.sendto(('MESSAGE ' + data).encode(), user)
+                    self.queue.put((self.users[addr] + ': ' + data + '\r\n').encode())
 
                 elif data.split()[0] == 'QUIT':
                     self.socket.sendto('GOODBYE 0\r\n'.encode(), addr)
-                    for user in self.users.keys():
-                        if user != addr:
-                            self.socket.sendto(('MESSAGE ' + self.users[addr] + 'has left the room.').encode(), user)
-
+                    self.queue.put(('MESSAGE ' + self.users[addr] + 'has left the room.').encode())
                     del self.users[addr]
 
 
         self.socket.close()
         del self.parent.chat_rooms[self.name]
+
+    def send(self):
+        '''
+        DOCS
+
+        '''
+        while not self.users:
+            pass
+
+        user_count = len(self.users)
+        while self.users and not self.queue.empty():
+            for user in self.users.keys():
+                self.socket.sendto(seld.queue.get(), user)
+
+            if len(self.users) > user_count:
+                self.queue.put('MESSAGE Someone has joined the room!'.encode())
+
+            time.sleep(0.1)
+            user_count = len(self.users)
 
 
 class ManagerServer:
@@ -128,23 +147,26 @@ class ManagerServer:
                 # Creates a room with the given room name and password. Password is
                 # optional.
                 elif message_tokens[0] == 'ROOM':
-                    if message_tokens[2] not in self.chat_rooms.keys():
-                        if len(message_tokens) > 3:
-                            salt = uuid.uuid4().hex.encode()
-                            pas = hashlib.sha512(message_tokens[3].encode() + salt).hexdigest()
+                    if len(self.chat_rooms < 64):
+                        if message_tokens[2] not in self.chat_rooms.keys():
+                            if len(message_tokens) > 3:
+                                salt = uuid.uuid4().hex.encode()
+                                pas = hashlib.sha512(message_tokens[3].encode() + salt).hexdigest()
+                            else:
+                                pas = None
+                                salt = None
+
+                            user_port = message_tokens[1]
+                            new_addr = (addr[0], int(user_port))
+
+                            port = random.randint(25001, 50000)
+                            self.chat_rooms[message_tokens[2]] = ChatRoom(self, message_tokens[2], port, pas, salt)
+                            self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
+                            connectionSocket.send('ChatRoom established and joined {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
                         else:
-                            pas = None
-                            salt = None
-
-                        user_port = message_tokens[1]
-                        new_addr = (addr[0], int(user_port))
-
-                        port = random.randint(25001, 50000)
-                        self.chat_rooms[message_tokens[2]] = ChatRoom(self, message_tokens[2], port, pas, salt)
-                        self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
-                        connectionSocket.send('ChatRoom established and joined {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
+                            connectionSocket.send('ChatRoom name in use 1\r\n'.encode())
                     else:
-                        connectionSocket.send('ChatRoom name in use 1\r\n'.encode())
+                        connectionSocket.send('All ChatRoom slots full 1\r\n'.encode())
 
                 # JOIN roomname *password*
                 # Joins a room with the given room name and password. Password is
