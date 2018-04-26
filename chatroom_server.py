@@ -147,7 +147,7 @@ class ManagerServer:
                 # Creates a room with the given room name and password. Password is
                 # optional.
                 elif message_tokens[0] == 'ROOM':
-                    if len(self.chat_rooms < 64):
+                    if len(self.chat_rooms) < 64):
                         if message_tokens[2] not in self.chat_rooms.keys():
                             if len(message_tokens) > 3:
                                 salt = uuid.uuid4().hex.encode()
