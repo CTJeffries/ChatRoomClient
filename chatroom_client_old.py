@@ -6,11 +6,11 @@ import random
 import threading
 
 sT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-p = random.randint(30000, 60000)
+p = random.randint(30000, 50000)
 sT.bind(('', p))
-sT.connect(('Colby-GL62M-7RDX.ddns.wooster.edu', 25000))
+sT.connect(('ec2-18-216-153-185.us-east-2.compute.amazonaws.com', 25000))
 sU = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-p2 = random.randint(30000, 60000)
+p2 = random.randint(30000, 50000)
 sU.bind(('', p2))
 
 
@@ -26,13 +26,21 @@ def handle_room(room_port):
 def send_room(room_port):
     while True:
         asdf = input()
-        sU.sendto(asdf.encode(), ('Colby-GL62M-7RDX.ddns.wooster.edu', room_port))
-
+        if asdf.lower() != 'quit':
+            sU.sendto(('MESSAGE ' + asdf).encode(), ('ec2-18-216-153-185.us-east-2.compute.amazonaws.com', room_port))
+        else:
+            sU.sendto('QUIT'.encode(), ('ec2-18-216-153-185.us-east-2.compute.amazonaws.com', room_port))
+            break
 
 def recieve_room(room_port):
     while True:
         data, addr = sU.recvfrom(1024)
-        print(data.decode())
+        data = data.decode()
+        if data.split()[0] == 'MESSAGE':
+            print(data[7:])
+        elif data.split()[0] == 'GOODBYE':
+            break
+
 
 
 def basic_client():
@@ -64,6 +72,17 @@ def basic_client():
             if message.split()[-1] == '0':
                 room_port = int(message.split()[-2])
                 handle_room(room_port)
+
+        elif x == 'INFO':
+            sT.send('INFO'.encode())
+            message = sT.recv(1024).decode()
+            print(message)
+
+        elif x== 'QUIT':
+            sT.send('QUIT'.encode())
+            message = sT.recv(1024).decode()
+            print(message)
+            break
 
 
 if __name__ == '__main__':
