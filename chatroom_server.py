@@ -65,7 +65,7 @@ class ChatRoom:
 
                 elif data.split()[0] == 'QUIT':
                     self.socket.sendto('GOODBYE 0\r\n'.encode(), addr)
-                    self.queue.put(('MESSAGE ' + self.users[addr] + 'has left the room.').encode())
+                    self.queue.put(('MESSAGE ' + self.users[addr] + ' has left the room.').encode())
                     del self.users[addr]
 
 
@@ -82,7 +82,9 @@ class ChatRoom:
 
         user_count = len(self.users)
         while self.users:
+            print('asdf')
             if not self.queue.empty():
+                print('xyz')
                 msg = self.queue.get()
                 for user in self.users.keys():
                     self.socket.sendto(msg, user)
