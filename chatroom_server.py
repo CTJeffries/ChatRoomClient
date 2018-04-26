@@ -57,13 +57,13 @@ class ChatRoom:
                     data = data[7:]
                     data = (self.users[addr] + ': ' + data + '\r\n')
                     for user in self.users.keys():
-                        self.socket.sendto(('MESSAGE '+ data).encode(), user)
+                        self.socket.sendto(('MESSAGE ' + data).encode(), user)
 
                 elif data.split()[0] == 'QUIT':
                     self.socket.sendto('GOODBYE 0\r\n'.encode(), addr)
                     for user in self.users.keys():
                         if user != addr:
-                            self.socket.sendto(('MESSAGE' + self.users[addr] + 'has left the room.').encode(), user)
+                            self.socket.sendto(('MESSAGE ' + self.users[addr] + 'has left the room.').encode(), user)
 
                     del self.users[addr]
 
