@@ -23,11 +23,12 @@ class ChatRoom:
     INSERT DOCS HERE
 
     '''
-    def __init__(self, name, port, password=None, salt=None):
+    def __init__(self, parent, name, port, password=None, salt=None):
         '''
         CONSTRUCTOR DOCS
 
         '''
+        self.parent = parent
         self.users = {}
         self.name = name
         self.port = port
@@ -68,7 +69,7 @@ class ChatRoom:
 
 
         self.socket.close()
-
+        del self.parent.chat_rooms[self.name]
 
 
 class ManagerServer:
@@ -139,7 +140,7 @@ class ManagerServer:
                         new_addr = (addr[0], int(user_port))
 
                         port = random.randint(25001, 50000)
-                        self.chat_rooms[message_tokens[2]] = ChatRoom(message_tokens[2], port, pas, salt)
+                        self.chat_rooms[message_tokens[2]] = ChatRoom(message_tokens[2], self, port, pas, salt)
                         self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
                         connectionSocket.send('ChatRoom established and joined {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
                     else:
