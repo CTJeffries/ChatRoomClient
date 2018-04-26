@@ -16,6 +16,7 @@ import threading
 import hashlib, uuid
 import json
 import time
+import Queue
 
 class ChatRoom:
     '''
@@ -39,7 +40,7 @@ class ChatRoom:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind(('', self.port))
 
-        self.queue = Queue()
+        self.queue = Queue.Queue()
 
         self.listener = threading.Thread(target=self.listen, args=())
         self.sender = threading.Thread(target=self.send, args=())
