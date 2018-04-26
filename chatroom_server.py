@@ -84,7 +84,7 @@ class ChatRoom:
         while self.users:
             if not self.queue.empty():
                 for user in self.users.keys():
-                    self.socket.sendto(seld.queue.get(), user)
+                    self.socket.sendto(self.queue.get(), user)
 
             if len(self.users) > user_count:
                 self.queue.put('MESSAGE Someone has joined the room!'.encode())
