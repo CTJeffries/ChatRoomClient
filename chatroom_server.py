@@ -84,8 +84,8 @@ class ChatRoom:
         while self.users:
             print('asdf')
             if not self.queue.empty():
-                print('xyz')
                 msg = self.queue.get()
+                print(msg)
                 for user in self.users.keys():
                     self.socket.sendto(msg, user)
 
