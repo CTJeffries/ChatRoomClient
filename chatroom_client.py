@@ -14,6 +14,13 @@ class LoginWindow(object):
     def __init__(self, parent):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+
+        RWidth = root.winfo_screenwidth()
+        RHeight = root.winfo_screenheight()
+        WindowWidth = 400
+        WindowHeight = 200
+        self.window.geometry(("%dx%d+%d+%d")%(WindowWidth,WindowHeight,(RWidth/2)-(WindowWidth/2),(RHeight/2)-(WindowHeight)))
+
         self.name = tk.StringVar()
         self.name.set('')
         self.label = tk.Label(self.window, text='Enter a username or leave blank to enter as a guest!')
@@ -55,7 +62,7 @@ class PassWindow():
                                 validatecommand=(self.window.register(self.validate), '%P'))
         self.room_pass.pack()
 
-        self.enter_button = tk.Button(self.window, text='Join Room')
+        self.enter_button = tk.Button(self.window, text='Join Room', command=self.join_room)
         self.enter_button.pack()
 
     def run(self):
@@ -67,6 +74,10 @@ class PassWindow():
             return P.isalnum()
         else:
             return False
+
+    def run(self):
+        self.window.wait_window()
+        return self.name.get()
 
 
 class MainWindow(tk.Frame):
@@ -86,6 +97,17 @@ class MainWindow(tk.Frame):
 
         self.udp_sockets = []
         self.udp_usage = []
+
+        RWidth = root.winfo_screenwidth()
+        RHeight = root.winfo_screenheight()
+        WindowWidth = 600
+        self.parent.geometry(("%dx%d+%d+%d")%(WindowWidth,RHeight,(RWidth/2)-(WindowWidth/2),0))
+
+        self.name_button = tk.Button(self.parent, text = "Back to Login")
+        self.name_button.grid(row=1, column=0, sticky='NSEW')
+
+        self.refresh_button = tk.Button(self.parent, text = "Refresh Rooms", command=self.refresh)
+        self.refresh_button.grid(row=1, column=1, sticky='NSEW')
 
         self.name_button = tk.Button(self.parent, text = "Back to Login", command=self.handle_login)
         self.refresh_button = tk.Button(self.parent, text = "Refresh Rooms", command=self.refresh)
@@ -242,7 +264,17 @@ class ChatRoomWindow():
     '''
     def __init__(self, parent, port, sock):
         self.parent = parent
+        self.window = tk.Toplevel(parent)
         # WIDGETS HERE
+        self.input = tk.Entry(self.window)
+        self.input.grid(row=1, column=0, columnspan=3)
+
+        self.enter_button = tk.Button(self.window, text='Enter', command=self.send_message)
+        self.enter_button.grid(row= 1, column=3)
+
+    def send_message(self):
+        pass
+
 
 if __name__ == '__main__':
     root = tk.Tk()
