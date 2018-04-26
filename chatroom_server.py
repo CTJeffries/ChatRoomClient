@@ -140,7 +140,7 @@ class ManagerServer:
                         new_addr = (addr[0], int(user_port))
 
                         port = random.randint(25001, 50000)
-                        self.chat_rooms[message_tokens[2]] = ChatRoom(message_tokens[2], self, port, pas, salt)
+                        self.chat_rooms[message_tokens[2]] = ChatRoom(self, message_tokens[2], port, pas, salt)
                         self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
                         connectionSocket.send('ChatRoom established and joined {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
                     else:
