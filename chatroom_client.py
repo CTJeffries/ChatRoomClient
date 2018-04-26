@@ -14,6 +14,13 @@ class LoginWindow(object):
     def __init__(self, parent):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+
+        RWidth = root.winfo_screenwidth()
+        RHeight = root.winfo_screenheight()
+        WindowWidth = 400
+        WindowHeight = 200
+        self.window.geometry(("%dx%d+%d+%d")%(WindowWidth,WindowHeight,(RWidth/2)-(WindowWidth/2),(RHeight/2)-(WindowHeight)))
+
         self.name = tk.StringVar()
         self.name.set('')
         self.label = tk.Label(self.window, text='Enter a username or leave blank to enter as a guest!')
@@ -50,11 +57,15 @@ class PassWindow():
         self.room_pass = tk.Entry(self.window)
         self.room_pass.pack()
 
-        self.enter_button = tk.Button(self.window, text='Join Room')
+        self.enter_button = tk.Button(self.window, text='Join Room', command=self.join_room)
         self.enter_button.pack()
 
         self.window.wait_window()
         return self.password.get()
+
+    def join_room(self):
+        #ChatRoomWindow(self).run()
+        pass
 
     def run(self):
         self.window.wait_window()
@@ -68,20 +79,25 @@ class MainWindow(tk.Frame):
     def __init__(self, parent):
         self.parent = parent
         tk.Frame.__init__(self, parent)
+
+        RWidth = root.winfo_screenwidth()
+        RHeight = root.winfo_screenheight()
+        WindowWidth = 600
+        self.parent.geometry(("%dx%d+%d+%d")%(WindowWidth,RHeight,(RWidth/2)-(WindowWidth/2),0))
         # Widgets HERE
         ## Radio buttons
 
         self.name_button = tk.Button(self.parent, text = "Back to Login")
-        self.name_button.grid(row=1, column=0)
+        self.name_button.grid(row=1, column=0, sticky='NSEW')
 
         self.refresh_button = tk.Button(self.parent, text = "Refresh Rooms", command=self.refresh)
-        self.refresh_button.grid(row=1, column=1)
+        self.refresh_button.grid(row=1, column=1, sticky='NSEW')
 
         self.join_button = tk.Button(self.parent, text = "Join", command=self.join_room)
-        self.join_button.grid(row=1, column=2)
+        self.join_button.grid(row=1, column=2, sticky='NSEW')
 
         self.create_button = tk.Button(self.parent, text = "Create Room", command=self.new_room)
-        self.create_button.grid(row=1, column=3)
+        self.create_button.grid(row=1, column=3, sticky='NSEW')
 
         name = LoginWindow(self).run()
         if name != '':
@@ -147,7 +163,17 @@ class ChatRoomWindow():
     '''
     def __init__(self, parent):
         self.parent = parent
+        self.window = tk.Toplevel(parent)
         # WIDGETS HERE
+        self.input = tk.Entry(self.window)
+        self.input.grid(row=1, column=0, columnspan=3)
+
+        self.enter_button = tk.Button(self.window, text='Enter', command=self.send_message)
+        self.enter_button.grid(row= 1, column=3)
+
+    def send_message(self):
+        pass
+
 
 if __name__ == '__main__':
     root = tk.Tk()
