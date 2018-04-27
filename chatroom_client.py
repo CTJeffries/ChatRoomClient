@@ -7,7 +7,8 @@ import threading
 import tkinter as tk
 import json
 import sys
-import tkMessageBox
+import queue
+import time
 
 class LoginWindow(object):
     '''
@@ -134,7 +135,7 @@ class MainWindow(tk.Frame):
                 message = self.main_tcp.recv(1024).decode()
                 ok = message.split()[-1]
                 if ok == 1:
-                    tkMessageBox.showinfo('Alert!', message[:-3])
+                    tk.messagebox.showinfo('Alert!', message[:-3])
                     name = LoginWindow(self).run()
             else:
                 ok = 0
@@ -150,7 +151,7 @@ class MainWindow(tk.Frame):
                 room_port = int(message.split()[-2])
                 ChatRoomWindow(self, room_port, sock)
             else:
-                tkMessageBox.showinfo('Alert!', message[:-3])
+                tk.messagebox.showinfo('Alert!', message[:-3])
 
 
     def refresh(self):
@@ -193,7 +194,7 @@ class MainWindow(tk.Frame):
             room_port = int(message.split()[-2])
             ChatRoomWindow(self, room_port, sock)
         else:
-            tkMessageBox.showinfo('Alert!', message[:-3])
+            tk.messagebox.showinfo('Alert!', message[:-3])
 
 
     def generate_udp_port(self):
@@ -280,12 +281,11 @@ class ChatRoomWindow():
         self.parent = parent
         self.window = tk.Toplevel(parent)
         self.port = port
-        print(sock)
-        self.sock = sock[1][0]
+        self.sock = sock
+        self.queue = queue.Queue()
         self.message = tk.StringVar()
         self.message.set('')
-        # WIDGETS HERE
-        self.chat_box = tk.Entry(self.window, state='readonly')
+        self.chat_box = tk.Text(self.window, state='disabled')
         self.chat_box.grid(row=0, column=0, columnspan=3)
 
         self.input = tk.Entry(self.window, textvariable=self.message)
@@ -294,11 +294,30 @@ class ChatRoomWindow():
         self.enter_button = tk.Button(self.window, text='Enter', command=self.send_message)
         self.enter_button.grid(row= 1, column=3)
 
+        self.rcv_thread = threading.Thread(target=self.recieve)
+        self.rcv_thread.start()
+        self.parent.parent.after(100, self.check)
+
+    def recieve(self):
+        while True:
+            data, addr = self.sock[1][0].recvfrom(1024)
+            data = data.decode()
+            if data.split()[0] == 'MESSAGE':
+                self.queue.put(data[7:])
+            elif data.split()[0] == 'GOODBYE':
+                break
+
     def send_message(self):
-        print(self.parent.server)
-        print(type(self.parent.server))
-        self.sock.send(('MESSAGE ' + self.message.get()).encode(), (self.parent.server, int(self.port)))
+        self.sock[1][0].sendto(('MESSAGE ' + self.message.get()).encode(), (self.parent.server, int(self.port)))
         self.message.set('')
+
+    def check(self):
+        if not self.queue.empty():
+            self.chat_box.config(state='normal')
+            self.chat_box.insert('end', self.queue.get() + '\n')
+            self.chat_box.config(state='disabled')
+
+        self.parent.parent.after(100, self.check)
 
 
 if __name__ == '__main__':
