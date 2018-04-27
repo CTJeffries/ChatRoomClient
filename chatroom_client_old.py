@@ -5,10 +5,13 @@ import socket
 import random
 import threading
 
+with open('server.txt', 'r') as f:
+    server = f.readline()
+server = server[0:-1]
+
 sT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 p = random.randint(30000, 50000)
 sT.bind(('', p))
-server = 'ec2-18-217-72-186.us-east-2.compute.amazonaws.com'
 sT.connect((server, 25000))
 sU = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 p2 = random.randint(30000, 50000)
