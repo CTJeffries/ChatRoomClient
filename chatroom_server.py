@@ -77,14 +77,11 @@ class ChatRoom:
             if (time.time() - self.last_listen_update) > 10:
                 self.last_listen_update = time.time()
                 for i in self.users.keys():
-                    if i not in self.user_activity.keys():
-                        self.user_activity[i] = time.time()
-                    else:
-                        if (time.time() - self.user_activity[i]) > 30:
-                            self.socket.sendto('GOODBYE 0\r\n'.encode(), addr)
-                            self.queue.put(('MESSAGE ' + self.users[addr] + ' has left the room due to inactivity.').encode())
-                            del self.users[addr]
-                            del self.user_activity[addr]
+                    if (time.time() - self.user_activity[i]) > 30:
+                        self.socket.sendto('GOODBYE 0\r\n'.encode(), addr)
+                        self.queue.put(('MESSAGE ' + self.users[addr] + ' has left the room due to inactivity.').encode())
+                        del self.users[addr]
+                        del self.user_activity[addr]
 
 
 

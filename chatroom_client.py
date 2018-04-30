@@ -97,7 +97,7 @@ class PassWindow():
             return None
         else:
             return self.password.get()
-        
+
     def validate(self, P):
         if ((len(P) <= 20) and P.isalnum()) or P == '':
             return True
@@ -366,6 +366,9 @@ class ChatRoomWindow():
             if data.split()[0] == 'MESSAGE':
                 self.queue.put(data[7:])
             elif data.split()[0] == 'GOODBYE':
+                if self.open:
+                    self.onDestroy()
+                
                 break
 
     def send_message(self):
