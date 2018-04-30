@@ -79,9 +79,9 @@ class ChatRoom:
                 for i in self.users.keys():
                     if (time.time() - self.user_activity[i]) > 30:
                         self.socket.sendto('GOODBYE 0\r\n'.encode(), i)
-                        self.queue.put(('MESSAGE ' + self.users[addr] + ' has left the room due to inactivity.').encode())
-                        del self.users[addr]
-                        del self.user_activity[addr]
+                        self.queue.put(('MESSAGE ' + self.users[i] + ' has left the room due to inactivity.').encode())
+                        del self.users[i]
+                        del self.user_activity[i]
 
 
 
