@@ -12,5 +12,5 @@ def send_client_source():
     return send_from_directory(os.getcwd(), 'chatroom_client.py')
 
 if __name__ == '__main__':
-    subprocess.call(['./get_serversh'])
+    subprocess.call(['./get_server.sh'])
     app.run(host='0.0.0.0', port=24999, threaded=True)
