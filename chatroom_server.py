@@ -48,9 +48,37 @@ class ChatRoom:
 
         self.listener = threading.Thread(target=self.listen, args=())
         self.sender = threading.Thread(target=self.send, args=())
+        self.monitor = threading.Thread(target=self.monitor_users, args=())
 
         self.listener.start()
         self.sender.start()
+        self.monitor.start()
+
+    def monitor_users(self):
+        while not self.users:
+            pass
+
+        while self.users:
+            if (time.time() - self.last_send_update) > 1:
+                self.last_send_update = time.time()
+                user_count = len(self.users)
+                if len(self.users) > user_count:
+                    self.queue.put('MESSAGE Someone has joined the room!'.encode())
+
+            if (time.time() - self.last_listen_update) > 300:
+                self.last_listen_update = time.time()
+                users_to_boot = []
+                for i in self.users.keys():
+                    print((time.time() - self.user_activity[i]))
+                    if (time.time() - self.user_activity[i]) > 5:
+                        self.socket.sendto('GOODBYE 0\r\n'.encode(), i)
+                        self.queue.put(('MESSAGE ' + self.users[i] + ' has left the room due to inactivity.').encode())
+                        users_to_boot.append(i)
+
+                for i in users_to_boot:
+                    del self.users[i]
+                    del self.user_activity[i]
+
 
     def listen(self):
         '''
@@ -59,6 +87,7 @@ class ChatRoom:
         '''
         while not self.users:
             pass
+
         while self.users:
             data, addr = self.socket.recvfrom(1024)
             if data and (addr in self.users.keys()):
@@ -73,17 +102,6 @@ class ChatRoom:
                     self.queue.put(('MESSAGE ' + self.users[addr] + ' has left the room.').encode())
                     del self.users[addr]
                     del self.user_activity[addr]
-
-            if (time.time() - self.last_listen_update) > 10:
-                self.last_listen_update = time.time()
-                for i in self.users.keys():
-                    if (time.time() - self.user_activity[i]) > 30:
-                        self.socket.sendto('GOODBYE 0\r\n'.encode(), i)
-                        self.queue.put(('MESSAGE ' + self.users[i] + ' has left the room due to inactivity.').encode())
-                        del self.users[i]
-                        del self.user_activity[i]
-
-
 
         self.socket.close()
         del self.parent.chat_rooms[self.name]
@@ -102,14 +120,6 @@ class ChatRoom:
                 msg = self.queue.get()
                 for user in self.users.keys():
                     self.socket.sendto(msg, user)
-
-            if len(self.users) > user_count:
-                self.queue.put('MESSAGE Someone has joined the room!'.encode())
-
-            if (time.time() - self.last_send_update) > 1:
-                self.last_send_update = time.time()
-                user_count = len(self.users)
-
 
 class ManagerServer:
     '''
@@ -182,6 +192,7 @@ class ManagerServer:
                             port = random.randint(25001, 50000)
                             self.chat_rooms[message_tokens[2]] = ChatRoom(self, message_tokens[2], port, pas, salt)
                             self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
+                            self.chat_rooms[message_tokens[2]].user_activity[new_addr] = time.time()
                             connectionSocket.send('ChatRoom established and joined {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
                         else:
                             connectionSocket.send('ChatRoom name in use 1\r\n'.encode())
