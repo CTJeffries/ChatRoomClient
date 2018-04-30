@@ -13,7 +13,8 @@ import socket
 import random
 import string
 import threading
-import hashlib, uuid
+import hashlib
+import uuid
 import json
 import time
 import queue
@@ -32,11 +33,14 @@ class ChatRoom:
         '''
         self.parent = parent
         self.users = {}
+        self.user_activity = {}
         self.name = name
         self.port = port
         self.max_users = 64
         self.password = password
         self.salt = salt
+        self.last_listen_update = time.time()
+        self.last_send_update = time.time()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind(('', self.port))
 
@@ -58,6 +62,7 @@ class ChatRoom:
         while self.users:
             data, addr = self.socket.recvfrom(1024)
             if data and (addr in self.users.keys()):
+                self.user_activity[addr] = time.time()
                 data = data.decode()
                 if data.split()[0] == 'MESSAGE':
                     data = data[7:]
@@ -67,6 +72,20 @@ class ChatRoom:
                     self.socket.sendto('GOODBYE 0\r\n'.encode(), addr)
                     self.queue.put(('MESSAGE ' + self.users[addr] + ' has left the room.').encode())
                     del self.users[addr]
+                    del self.user_activity[addr]
+
+            if (time.time() - self.last_listen_update) > 10:
+                self.last_listen_update = time.time()
+                for i in self.users.keys():
+                    if i not in self.user_activity.keys():
+                        self.user_activity[i] = time.time()
+                    else:
+                        if (time.time() - self.user_activity[i]) > 30:
+                            self.socket.sendto('GOODBYE 0\r\n'.encode(), addr)
+                            self.queue.put(('MESSAGE ' + self.users[addr] + ' has left the room due to inactivity.').encode())
+                            del self.users[addr]
+                            del self.user_activity[addr]
+
 
 
         self.socket.close()
@@ -90,8 +109,9 @@ class ChatRoom:
             if len(self.users) > user_count:
                 self.queue.put('MESSAGE Someone has joined the room!'.encode())
 
-            time.sleep(0.1)
-            user_count = len(self.users)
+            if (time.time() - self.last_send_update) > 1:
+                self.last_send_update = time.time()
+                user_count = len(self.users)
 
 
 class ManagerServer:
@@ -188,6 +208,7 @@ class ManagerServer:
                             if len(self.chat_rooms[message_tokens[2]].users) < self.chat_rooms[message_tokens[2]].max_users:
                                 connectionSocket.send('Connected to chat room {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
                                 self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
+                                self.chat_rooms[message_tokens[2]].user_activity[new_addr] = time.time()
                         else:
                             connectionSocket.send('Incorrect password 1\r\n'.encode())
                     else:

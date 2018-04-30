@@ -5,6 +5,7 @@ import socket
 import random
 import threading
 import tkinter as tk
+from tkinter import messagebox
 import json
 import sys
 import queue
@@ -18,6 +19,8 @@ class LoginWindow(object):
     def __init__(self, parent):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+        self.window.attributes("-topmost", True)
+        self.window.grab_set()
         self.window.title('Login')
         self.window.protocol("WM_DELETE_WINDOW", self.onDestroy)
 
@@ -36,6 +39,7 @@ class LoginWindow(object):
         self.entry.pack()
         self.enter = tk.Button(self.window, text='Ok', command=self.submit)
         self.enter.pack()
+        self.window.lift()
 
     def onDestroy(self):
         self.name.set('')
@@ -52,6 +56,7 @@ class LoginWindow(object):
 
     def run(self):
         self.window.wait_window()
+        self.window.grab_release()
         return self.name.get()
 
 
@@ -62,6 +67,8 @@ class PassWindow():
     def __init__(self, parent):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+        self.window.attributes("-topmost", True)
+        self.window.grab_set()
         self.window.protocol("WM_DELETE_WINDOW", self.onDestroy)
         self.password = tk.StringVar()
         self.password.set('')
@@ -77,6 +84,7 @@ class PassWindow():
 
         self.enter_button = tk.Button(self.window, text='Join Room', command=self.window.destroy)
         self.enter_button.pack()
+        self.window.lift()
 
     def onDestroy(self):
         self.cancelled = True
@@ -84,11 +92,12 @@ class PassWindow():
 
     def run(self):
         self.window.wait_window()
-        if not self.cancelled:
-            return self.password.get()
-        else:
+        self.window.grab_release()
+        if self.cancelled or self.password.get() == '':
             return None
-
+        else:
+            return self.password.get()
+        
     def validate(self, P):
         if ((len(P) <= 20) and P.isalnum()) or P == '':
             return True
@@ -127,7 +136,8 @@ class MainWindow(tk.Frame):
         RWidth = root.winfo_screenwidth()
         RHeight = root.winfo_screenheight()
         WindowWidth = 600
-        self.parent.geometry(("%dx%d+%d+%d")%(WindowWidth,RHeight,(RWidth/2)-(WindowWidth/2),0))
+        WindowHeight = 600
+        self.parent.geometry(("%dx%d+%d+%d")%(WindowWidth, WindowHeight, (RWidth/2)-(WindowWidth/2), (RHeight/2)-(WindowHeight  /2)))
 
         self.name_button = tk.Button(self.parent, text = "Back to Login", command=self.handle_login)
         self.refresh_button = tk.Button(self.parent, text = "Refresh Rooms", command=self.refresh)
@@ -161,9 +171,9 @@ class MainWindow(tk.Frame):
                     message = self.main_tcp.recv(1024).decode()
                     ok = message.split()[-1]
                 except Exception as e:
-                    pass
+                    print(e)
                 if ok == 1:
-                    tk.messagebox.showinfo('Alert!', message[:-3])
+                    messagebox.showinfo('Alert!', message[:-3], parent=self.parent)
                     name = LoginWindow(self).run()
             else:
                 ok = 0
@@ -174,17 +184,20 @@ class MainWindow(tk.Frame):
         if room is not None:
             sock = self.get_sock()
             try:
-                self.main_tcp.send(('ROOM ' + str(sock[1][1]) + ' ' + room[0] + ' ' + room[1]))
+                self.main_tcp.send(('ROOM ' + str(sock[1][1]) + ' ' + room[0] + ' ' + room[1]).encode())
                 message = self.main_tcp.recv(1024).decode()
                 if message.split()[-1] == '0':
                     room_port = int(message.split()[-2])
                     ChatRoomWindow(self, room_port, sock)
                 else:
-                    tk.messagebox.showinfo('Alert!', message[:-3])
+                    messagebox.showinfo('Alert!', message[:-3], parent=self.parent)
             except Exception as e:
-                pass
+                print(e)
 
     def refresh(self):
+        for i in self.room_buttons:
+            i.grid_forget()
+
         self.room_buttons = []
         self.rooms = []
 
@@ -211,7 +224,7 @@ class MainWindow(tk.Frame):
             self.join_button.grid(row=len(self.rooms), column=2)
             self.create_button.grid(row=len(self.rooms), column=3)
         except Exception as e:
-            pass
+            print(e)
 
     def join_room(self):
         # Open pass window if there is a password, if not, open chat window.
@@ -229,9 +242,9 @@ class MainWindow(tk.Frame):
                     room_port = int(message.split()[-2])
                     ChatRoomWindow(self, room_port, sock)
                 else:
-                    tk.messagebox.showinfo('Alert!', message[:-3])
+                    messagebox.showinfo('Alert!', message[:-3], parent=self.parent)
             except Exception as e:
-                pass
+                print(e)
 
     def generate_udp_port(self):
         new_port = random.randint(30000, 50000)
@@ -261,6 +274,8 @@ class CreateRoomWindow():
     def __init__(self, parent):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+        self.window.attributes("-topmost", True)
+        self.window.grab_set()
         self.window.protocol("WM_DELETE_WINDOW", self.cancel)
         self.room_name = tk.StringVar()
         self.room_name.set('')
@@ -287,19 +302,21 @@ class CreateRoomWindow():
 
         self.return_button = tk.Button(self.window, text='Cancel', command=self.cancel)
         self.return_button.grid(row=4, column=2)
+        self.window.lift()
 
     def submit(self):
         self.window.destroy()
 
     def run(self):
         self.window.wait_window()
+        self.window.grab_release()
         if self.room_name == '' or self.cancelled:
             return None
         else:
             return (self.room_name.get(), self.room_pass.get())
 
     def cancel(self):
-        self.canceled = True
+        self.cancelled = True
         self.window.destroy()
 
     def validate(self, P):
