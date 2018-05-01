@@ -46,6 +46,8 @@ class IPWindow(object):
         self.enter_button = tk.Button(self.window, text='Enter', command=self.window.destroy, highlightbackground='grey', background='#8877DD')
         self.enter_button.pack()
         self.window.lift()
+        self.window.update()
+        self.parent.parent.update()
 
     def onDestroy(self):
         self.cancelled = True
@@ -99,6 +101,8 @@ class LoginWindow(object):
         self.enter = tk.Button(self.window, text='Ok', command=self.submit, highlightbackground='grey', background='#8877DD')
         self.enter.pack()
         self.window.lift()
+        self.window.update()
+        self.parent.parent.update()
 
     def onDestroy(self):
         self.name.set('')
@@ -152,6 +156,8 @@ class PassWindow():
         self.enter_button = tk.Button(self.window, text='Join Room', command=self.window.destroy, highlightbackground='grey', background='#8877DD')
         self.enter_button.pack()
         self.window.lift()
+        self.window.update()
+        self.parent.parent.update()
 
     def onDestroy(self):
         self.cancelled = True
@@ -239,6 +245,7 @@ class MainWindow(tk.Frame):
         self.room_buttons = []
         self.rooms = []
         self.refresh()
+        self.parent.update()
 
         self.handle_login()
         self.parent.after(30000, self.auto_refresh)
@@ -402,6 +409,8 @@ class CreateRoomWindow():
         self.return_button = tk.Button(self.window, text='Cancel', command=self.cancel, highlightbackground='grey', background='#8877DD')
         self.return_button.grid(row=4, column=1, sticky='nsew')
         self.window.lift()
+        self.window.update()
+        self.parent.parent.update()
 
     def submit(self):
         self.window.destroy()
@@ -456,6 +465,8 @@ class ChatRoomWindow():
         self.rcv_thread = threading.Thread(target=self.recieve)
         self.rcv_thread.start()
         self.parent.parent.after(100, self.check)
+        self.window.update()
+        self.parent.parent.update()
 
     def onDestroy(self):
         self.sock[1][0].sendto('QUIT'.encode(), (self.parent.server, self.port))
