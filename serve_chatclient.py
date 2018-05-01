@@ -21,7 +21,7 @@ def send_client_linux():
 
 @app.route('/chatclient/mac')
 def send_client_mac():
-    return send_from_directory(os.getcwd(), os.path.join('dist', 'chatroom_client_mac'))
+    return send_from_directory(os.getcwd(), os.path.join('dist', 'chatroom_client_mac.app'))
 
 if __name__ == '__main__':
     subprocess.call(['./get_server.sh'])
