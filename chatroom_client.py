@@ -220,6 +220,12 @@ class MainWindow(tk.Frame):
         self.pop_label.grid(row=1, column=3, sticky='nsew')
 
         self.server = ''
+        self.selected_room = tk.IntVar()
+        self.selected_room.set(0)
+        self.room_buttons = []
+        self.rooms = []
+        self.chat_rooms = []
+        self.main_tcp = None
 
         if os.path.isfile('server.txt'):
             with open('server.txt', 'r') as f:
@@ -242,11 +248,6 @@ class MainWindow(tk.Frame):
             print(e)
             sys.exit(-1)
 
-        self.selected_room = tk.IntVar()
-        self.selected_room.set(0)
-        self.room_buttons = []
-        self.rooms = []
-        self.chat_rooms = []
         self.refresh()
         self.parent.update()
 
@@ -255,10 +256,11 @@ class MainWindow(tk.Frame):
 
     def onDestroy(self):
         if not self.chat_rooms:
-            self.main_tcp.send('QUIT'.encode())
-            self.main_tcp.close()
-            for i in self.udp_sockets:
-                i[0].close()
+            if self.main_tcp:
+                self.main_tcp.send('QUIT'.encode())
+                self.main_tcp.close()
+                for i in self.udp_sockets:
+                    i[0].close()
 
             self.parent.destroy()
 
