@@ -11,6 +11,18 @@ app = Flask(__name__)
 def send_client_source():
     return send_from_directory(os.getcwd(), 'chatroom_client.py')
 
+@app.route('/chatclient/windows')
+def send_client_source():
+    return send_from_directory(os.getcwd(), os.path.join('dist', 'chatroom_client_windows.exe'))
+
+@app.route('/chatclient/linux')
+def send_client_source():
+    return send_from_directory(os.getcwd(), os.path.join('dist', 'chatroom_client_linux'))
+
+@app.route('/chatclient/mac')
+def send_client_source():
+    return send_from_directory(os.getcwd(), os.path.join('dist', 'chatroom_client_mac'))
+
 if __name__ == '__main__':
     subprocess.call(['./get_server.sh'])
     app.run(host='0.0.0.0', port=24999, threaded=True)
