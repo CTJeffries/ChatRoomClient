@@ -19,9 +19,11 @@ class LoginWindow(object):
     def __init__(self, parent):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+        self.window.bind('<Return>', lambda x: self.submit())
+        self.window.resizable(height = False, width = False)
         self.window.attributes("-topmost", True)
         self.window.grab_set()
-        self.window.title('Login')
+        self.window.title('AIM (Anonymous Instant Messenger)')
         self.window.protocol("WM_DELETE_WINDOW", self.onDestroy)
 
         RWidth = root.winfo_screenwidth()
@@ -29,6 +31,9 @@ class LoginWindow(object):
         WindowWidth = 400
         WindowHeight = 200
         self.window.geometry(("%dx%d+%d+%d")%(WindowWidth,WindowHeight,(RWidth/2)-(WindowWidth/2),(RHeight/2)-(WindowHeight)))
+
+        self.greeting = tk.Label(self.window, text= 'Hello! Welcome to AIM\n Anonymous Instant Messenger')
+        self.greeting.pack()
 
         self.name = tk.StringVar()
         self.name.set('')
@@ -67,6 +72,8 @@ class PassWindow():
     def __init__(self, parent):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+        self.window.resizable(height = False, width = False)
+        self.window.title('AIM (Anonymous Instant Messenger)')
         self.window.attributes("-topmost", True)
         self.window.grab_set()
         self.window.protocol("WM_DELETE_WINDOW", self.onDestroy)
@@ -111,6 +118,8 @@ class MainWindow(tk.Frame):
     '''
     def __init__(self, parent):
         self.parent = parent
+        self.parent.resizable(height = False, width = False)
+        self.parent.title('AIM (Anonymous Instant Messenger)')
         tk.Frame.__init__(self, parent)
         self.parent.protocol("WM_DELETE_WINDOW", self.onDestroy)
         self.server = ''
@@ -135,14 +144,18 @@ class MainWindow(tk.Frame):
 
         RWidth = root.winfo_screenwidth()
         RHeight = root.winfo_screenheight()
-        WindowWidth = 600
-        WindowHeight = 600
-        self.parent.geometry(("%dx%d+%d+%d")%(WindowWidth, WindowHeight, (RWidth/2)-(WindowWidth/2), (RHeight/2)-(WindowHeight  /2)))
+        WindowWidth = 400
+        self.parent.geometry(("%dx%d+%d+%d")%(WindowWidth, RHeight-200, (RWidth)-(WindowWidth), 0))
 
         self.name_button = tk.Button(self.parent, text = "Back to Login", command=self.handle_login)
         self.refresh_button = tk.Button(self.parent, text = "Refresh Rooms", command=self.refresh)
         self.join_button = tk.Button(self.parent, text = "Join", command=self.join_room)
         self.create_button = tk.Button(self.parent, text = "Create Room", command=self.new_room)
+
+        self.name_button.grid(row=0, column=0)
+        self.refresh_button.grid(row=0, column=1)
+        self.join_button.grid(row=0, column=2)
+        self.create_button.grid(row=0, column=3)
 
         self.selected_room = tk.IntVar()
         self.selected_room.set(0)
@@ -211,18 +224,9 @@ class MainWindow(tk.Frame):
                 else:
                     room = self.rooms[i]['name'] + '   ClOSED   ' + str(self.rooms[i]['users']) + '/64'
 
-                self.room_buttons.append(tk.Radiobutton(self.parent, text=room, variable=self.selected_room, value=i))
-                self.room_buttons[i].grid(row=i, column=0, columnspan=4)
+                self.room_buttons.append(tk.Radiobutton(self.parent, text=room, variable=self.selected_room, value=i, indicatoron=False))
+                self.room_buttons[i].grid(row=i+1, column=0, columnspan=4)
 
-            self.name_button.grid_forget()
-            self.refresh_button.grid_forget()
-            self.join_button.grid_forget()
-            self.create_button.grid_forget()
-
-            self.name_button.grid(row=len(self.rooms), column=0)
-            self.refresh_button.grid(row=len(self.rooms), column=1)
-            self.join_button.grid(row=len(self.rooms), column=2)
-            self.create_button.grid(row=len(self.rooms), column=3)
         except Exception as e:
             print(e)
 
@@ -274,6 +278,9 @@ class CreateRoomWindow():
     def __init__(self, parent):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+        self.window.bind('<Return>', lambda x: self.submit())
+        self.window.resizable(height = False, width = False)
+        self.window.title('AIM (Anonymous Instant Messenger)')
         self.window.attributes("-topmost", True)
         self.window.grab_set()
         self.window.protocol("WM_DELETE_WINDOW", self.cancel)
@@ -310,7 +317,7 @@ class CreateRoomWindow():
     def run(self):
         self.window.wait_window()
         self.window.grab_release()
-        if self.room_name == '' or self.cancelled:
+        if self.room_name.get() == '' or self.cancelled:
             return None
         else:
             return (self.room_name.get(), self.room_pass.get())
@@ -333,6 +340,10 @@ class ChatRoomWindow():
     def __init__(self, parent, port, sock):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+        self.window.bind('<Return>', lambda x: self.send_message()
+        )
+        self.window.resizable(height = False, width = False)
+        self.window.title('AIM (Anonymous Instant Messenger)')
         self.window.protocol("WM_DELETE_WINDOW", self.onDestroy)
         self.port = port
         self.sock = sock
@@ -368,7 +379,7 @@ class ChatRoomWindow():
             elif data.split()[0] == 'GOODBYE':
                 if self.open:
                     self.onDestroy()
-                
+
                 break
 
     def send_message(self):
@@ -380,6 +391,7 @@ class ChatRoomWindow():
             self.chat_box.config(state='normal')
             self.chat_box.insert('end', self.queue.get() + '\n')
             self.chat_box.config(state='disabled')
+            self.chat_box.see('end')
 
         if self.open:
             self.parent.parent.after(100, self.check)
