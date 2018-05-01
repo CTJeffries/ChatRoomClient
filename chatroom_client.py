@@ -19,6 +19,7 @@ class LoginWindow(object):
     def __init__(self, parent):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+        self.window.configure(background='grey')
         self.window.bind('<Return>', lambda x: self.submit())
         self.window.resizable(height = False, width = False)
         self.window.attributes("-topmost", True)
@@ -28,21 +29,20 @@ class LoginWindow(object):
 
         RWidth = root.winfo_screenwidth()
         RHeight = root.winfo_screenheight()
-        WindowWidth = 400
-        WindowHeight = 200
-        self.window.geometry(("%dx%d+%d+%d")%(WindowWidth,WindowHeight,(RWidth/2)-(WindowWidth/2),(RHeight/2)-(WindowHeight)))
+        WindowWidth = 350
+        WindowHeight = 120
+        self.window.geometry(("%dx%d+%d+%d")%(WindowWidth,WindowHeight,(RWidth/2)-(WindowWidth/2),(RHeight/2)-(WindowHeight/2)))
 
-        self.greeting = tk.Label(self.window, text= 'Hello! Welcome to AIM\n Anonymous Instant Messenger')
+        self.greeting = tk.Label(self.window, text= 'Hello! Welcome to AIM:\n Anonymous Instant Messenger', highlightbackground='grey', background='grey')
         self.greeting.pack()
 
         self.name = tk.StringVar()
         self.name.set('')
-        self.label = tk.Label(self.window, text='Enter a username or leave blank to enter as a guest!')
+        self.label = tk.Label(self.window, text='Enter a username or leave blank to enter as a guest!', highlightbackground='grey', background='grey')
         self.label.pack()
-        self.entry = tk.Entry(self.window, textvariable=self.name, validate='all',
-                                validatecommand=(self.window.register(self.validate), '%P'))
+        self.entry = tk.Entry(self.window, textvariable=self.name, validate='all', validatecommand=(self.window.register(self.validate), '%P'), highlightbackground='grey')
         self.entry.pack()
-        self.enter = tk.Button(self.window, text='Ok', command=self.submit)
+        self.enter = tk.Button(self.window, text='Ok', command=self.submit, highlightbackground='grey', background='#8877DD')
         self.enter.pack()
         self.window.lift()
 
@@ -72,6 +72,7 @@ class PassWindow():
     def __init__(self, parent):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+        self.window.configure(background='grey')
         self.window.resizable(height = False, width = False)
         self.window.title('AIM (Anonymous Instant Messenger)')
         self.window.attributes("-topmost", True)
@@ -82,14 +83,19 @@ class PassWindow():
 
         self.cancelled = False
 
-        self.label = tk.Label(self.window, text='Enter room password')
+        RWidth = root.winfo_screenwidth()
+        RHeight = root.winfo_screenheight()
+        WindowWidth = 200
+        WindowHeight = 100
+        self.window.geometry(("%dx%d+%d+%d")%(WindowWidth,WindowHeight,(RWidth/2)-(WindowWidth/2),(RHeight/2)-(WindowHeight/2)))
+
+        self.label = tk.Label(self.window, text='Enter room password', highlightbackground='grey', background='grey')
         self.label.pack()
 
-        self.room_pass = tk.Entry(self.window, textvariable=self.password, validate='all',
-                                validatecommand=(self.window.register(self.validate), '%P'))
+        self.room_pass = tk.Entry(self.window, textvariable=self.password, validate='all', validatecommand=(self.window.register(self.validate), '%P'), highlightbackground='grey')
         self.room_pass.pack()
 
-        self.enter_button = tk.Button(self.window, text='Join Room', command=self.window.destroy)
+        self.enter_button = tk.Button(self.window, text='Join Room', command=self.window.destroy, highlightbackground='grey', background='#8877DD')
         self.enter_button.pack()
         self.window.lift()
 
@@ -118,6 +124,7 @@ class MainWindow(tk.Frame):
     '''
     def __init__(self, parent):
         self.parent = parent
+        self.parent.configure(background='grey')
         self.parent.resizable(height = False, width = False)
         self.parent.title('AIM (Anonymous Instant Messenger)')
         tk.Frame.__init__(self, parent)
@@ -126,7 +133,8 @@ class MainWindow(tk.Frame):
 
         with open('server.txt', 'r') as f:
             self.server = f.readline()
-        self.server = self.server[0:-1]
+        if self.server[-1] == '\n':
+            self.server = self.server[0:-1]
 
         try:
             self.used_ports = []
@@ -145,17 +153,26 @@ class MainWindow(tk.Frame):
         RWidth = root.winfo_screenwidth()
         RHeight = root.winfo_screenheight()
         WindowWidth = 400
-        self.parent.geometry(("%dx%d+%d+%d")%(WindowWidth, RHeight-200, (RWidth)-(WindowWidth), 0))
+        WindowHeight = 800
+        self.parent.geometry(("%dx%d+%d+%d")%(WindowWidth, WindowHeight, (RWidth/2)-(WindowWidth/2), (RHeight/2)-(WindowHeight/2)))
 
-        self.name_button = tk.Button(self.parent, text = "Back to Login", command=self.handle_login)
-        self.refresh_button = tk.Button(self.parent, text = "Refresh Rooms", command=self.refresh)
-        self.join_button = tk.Button(self.parent, text = "Join", command=self.join_room)
-        self.create_button = tk.Button(self.parent, text = "Create Room", command=self.new_room)
+        self.name_button = tk.Button(self.parent, text = "Back to Login", command=self.handle_login, highlightbackground='grey', background='#8877DD')
+        self.refresh_button = tk.Button(self.parent, text = "Refresh Rooms", command=self.refresh, highlightbackground='grey', background='#8877DD')
+        self.join_button = tk.Button(self.parent, text = "Join", command=self.join_room, state='disabled', highlightbackground='grey', background='#8877DD')
+        self.create_button = tk.Button(self.parent, text = "Create Room", command=self.new_room, highlightbackground='grey', background='#8877DD')
 
-        self.name_button.grid(row=0, column=0)
-        self.refresh_button.grid(row=0, column=1)
-        self.join_button.grid(row=0, column=2)
-        self.create_button.grid(row=0, column=3)
+        self.name_button.grid(row=0, column=0, sticky='nsew')
+        self.refresh_button.grid(row=0, column=1, sticky='nsew')
+        self.join_button.grid(row=0, column=2, sticky='nsew')
+        self.create_button.grid(row=0, column=3, sticky='nsew')
+
+        self.name_label = tk.Label(self.parent, text='Room Name', highlightbackground='grey', background='grey')
+        self.status_label = tk.Label(self.parent, text='Status', highlightbackground='grey', background='grey')
+        self.pop_label = tk.Label(self.parent, text='Users', highlightbackground='grey', background='grey')
+
+        self.name_label.grid(row=1, column=0, columnspan=2, sticky='nsew')
+        self.status_label.grid(row=1, column=2, sticky='nsew')
+        self.pop_label.grid(row=1, column=3, sticky='nsew')
 
         self.selected_room = tk.IntVar()
         self.selected_room.set(0)
@@ -164,6 +181,7 @@ class MainWindow(tk.Frame):
         self.refresh()
 
         self.handle_login()
+        self.parent.after(30000, self.auto_refresh)
 
     def onDestroy(self):
         self.main_tcp.send('QUIT'.encode())
@@ -209,7 +227,8 @@ class MainWindow(tk.Frame):
 
     def refresh(self):
         for i in self.room_buttons:
-            i.grid_forget()
+            for j in i:
+                j.grid_forget()
 
         self.room_buttons = []
         self.rooms = []
@@ -219,13 +238,23 @@ class MainWindow(tk.Frame):
             self.rooms = json.loads(self.main_tcp.recv(1024).decode())
 
             for i in range(len(self.rooms)):
+                room = self.rooms[i]['name']
                 if self.rooms[i]['pass'] == 0:
-                    room = self.rooms[i]['name'] + '    OPEN    ' + str(self.rooms[i]['users']) + '/64'
+                    pass_status = ' OPEN '
                 else:
-                    room = self.rooms[i]['name'] + '   ClOSED   ' + str(self.rooms[i]['users']) + '/64'
+                    pass_status = 'CLOSED'
 
-                self.room_buttons.append(tk.Radiobutton(self.parent, text=room, variable=self.selected_room, value=i, indicatoron=False))
-                self.room_buttons[i].grid(row=i+1, column=0, columnspan=4)
+                count = str(self.rooms[i]['users']) + '/64'
+
+                self.room_buttons.append([tk.Radiobutton(self.parent, text=room, variable=self.selected_room, value=i, indicatoron=False, highlightbackground='grey', background='#8877DD'), tk.Label(self.parent, text=pass_status, highlightbackground='grey', background='grey'), tk.Label(self.parent, text=count, highlightbackground='grey', background='grey')])
+                self.room_buttons[i][0].grid(row=i+2, column=0, columnspan=2, sticky='nsew')
+                self.room_buttons[i][1].grid(row=i+2, column=2, sticky='nsew')
+                self.room_buttons[i][2].grid(row=i+2, column=3, sticky='nsew')
+
+            if len(self.rooms) > 0:
+                self.join_button.config(state='normal')
+            else:
+                self.join_button.config(state='disabled')
 
         except Exception as e:
             print(e)
@@ -270,6 +299,10 @@ class MainWindow(tk.Frame):
         self.udp_usage[-1] = True
         return (len(self.udp_sockets) - 1, self.udp_sockets[-1])
 
+    def auto_refresh(self):
+        self.refresh()
+        self.parent.after(30000, self.auto_refresh)
+
 
 class CreateRoomWindow():
     '''
@@ -278,6 +311,7 @@ class CreateRoomWindow():
     def __init__(self, parent):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+        self.window.configure(background='grey')
         self.window.bind('<Return>', lambda x: self.submit())
         self.window.resizable(height = False, width = False)
         self.window.title('AIM (Anonymous Instant Messenger)')
@@ -290,25 +324,23 @@ class CreateRoomWindow():
         self.room_pass.set('')
         self.cancelled = False
 
-        self.name_label = tk.Label(self.window, text='Give your room a name')
-        self.name_label.grid(row=0, column=1)
+        self.name_label = tk.Label(self.window, text='Give your room a name', highlightbackground='grey', background='grey')
+        self.name_label.grid(row=0, column=0, columnspan=2, sticky='nsew')
 
-        self.new_room_name = tk.Entry(self.window, textvariable=self.room_name, validate='all',
-                                validatecommand=(self.window.register(self.validate), '%P'))
-        self.new_room_name.grid(row=1, column=1)
+        self.new_room_name = tk.Entry(self.window, textvariable=self.room_name, validate='all', validatecommand=(self.window.register(self.validate), '%P'), highlightbackground='grey')
+        self.new_room_name.grid(row=1, column=0, columnspan=2, sticky='nsew')
 
-        self.pass_label = tk.Label(self.window, text='Enter a password for your room. Leave blank for an open room')
-        self.pass_label.grid(row=2, column=1)
+        self.pass_label = tk.Label(self.window, text='Enter a password for your room. Leave blank for an open room', highlightbackground='grey', background='grey')
+        self.pass_label.grid(row=2, column=0, columnspan=2, sticky='nsew')
 
-        self.new_room_pass = tk.Entry(self.window, textvariable=self.room_pass, validate='all',
-                                validatecommand=(self.window.register(self.validate), '%P'))
-        self.new_room_pass.grid(row=3, column=1)
+        self.new_room_pass = tk.Entry(self.window, textvariable=self.room_pass, validate='all', validatecommand=(self.window.register(self.validate), '%P'), highlightbackground='grey')
+        self.new_room_pass.grid(row=3, column=0, columnspan=2, sticky='nsew')
 
-        self.create_button = tk.Button(self.window, text='Create Room', command=self.submit)
-        self.create_button.grid(row=4, column=0)
+        self.create_button = tk.Button(self.window, text='Create Room', command=self.submit, highlightbackground='grey', background='#8877DD')
+        self.create_button.grid(row=4, column=0, sticky='nsew')
 
-        self.return_button = tk.Button(self.window, text='Cancel', command=self.cancel)
-        self.return_button.grid(row=4, column=2)
+        self.return_button = tk.Button(self.window, text='Cancel', command=self.cancel, highlightbackground='grey', background='#8877DD')
+        self.return_button.grid(row=4, column=1, sticky='nsew')
         self.window.lift()
 
     def submit(self):
@@ -340,6 +372,7 @@ class ChatRoomWindow():
     def __init__(self, parent, port, sock):
         self.parent = parent
         self.window = tk.Toplevel(parent)
+        self.window.configure(background='grey')
         self.window.bind('<Return>', lambda x: self.send_message()
         )
         self.window.resizable(height = False, width = False)
@@ -351,14 +384,14 @@ class ChatRoomWindow():
         self.queue = queue.Queue()
         self.message = tk.StringVar()
         self.message.set('')
-        self.chat_box = tk.Text(self.window, state='disabled')
-        self.chat_box.grid(row=0, column=0, columnspan=3)
+        self.chat_box = tk.Text(self.window, state='disabled', highlightbackground='grey')
+        self.chat_box.grid(row=0, column=0, columnspan=3, sticky='nsew')
 
-        self.input = tk.Entry(self.window, textvariable=self.message)
-        self.input.grid(row=1, column=0, columnspan=3)
+        self.input = tk.Entry(self.window, textvariable=self.message, highlightbackground='grey')
+        self.input.grid(row=1, column=0, columnspan=2, sticky='nsew')
 
-        self.enter_button = tk.Button(self.window, text='Enter', command=self.send_message)
-        self.enter_button.grid(row= 1, column=3)
+        self.enter_button = tk.Button(self.window, text='Enter', command=self.send_message, highlightbackground='grey', background='#8877DD')
+        self.enter_button.grid(row= 1, column=2, sticky='nsew')
 
         self.rcv_thread = threading.Thread(target=self.recieve)
         self.rcv_thread.start()
@@ -375,7 +408,7 @@ class ChatRoomWindow():
             data, addr = self.sock[1][0].recvfrom(1024)
             data = data.decode()
             if data.split()[0] == 'MESSAGE':
-                self.queue.put(data[7:])
+                self.queue.put(data[7:-2])
             elif data.split()[0] == 'GOODBYE':
                 if self.open:
                     self.onDestroy()

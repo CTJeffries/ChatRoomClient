@@ -7,7 +7,8 @@ import threading
 
 with open('server.txt', 'r') as f:
     server = f.readline()
-server = server[0:-1]
+if server[-1] == '\n':
+    server = server[0:-1]
 
 sT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 p = random.randint(30000, 50000)
