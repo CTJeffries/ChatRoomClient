@@ -24,6 +24,7 @@ class IPWindow(object):
         self.window.resizable(height = False, width = False)
         self.window.title('AIM (Anonymous Instant Messenger)')
         self.window.attributes("-topmost", True)
+        self.window.bind('<Return>', lambda x: self.submit())
         self.window.grab_set()
         self.window.protocol("WM_DELETE_WINDOW", self.onDestroy)
         self.ip = tk.StringVar()
@@ -43,7 +44,7 @@ class IPWindow(object):
         self.server_ip = tk.Entry(self.window, textvariable=self.ip, validate='all', validatecommand=(self.window.register(self.validate), '%P'), highlightbackground='grey')
         self.server_ip.pack()
 
-        self.enter_button = tk.Button(self.window, text='Enter', command=self.window.destroy, highlightbackground='grey', background='#8877DD')
+        self.enter_button = tk.Button(self.window, text='Enter', command=self.window.destroy, highlightbackground='grey', background='#9955DD')
         self.enter_button.pack()
         self.window.lift()
         self.window.update()
@@ -98,7 +99,7 @@ class LoginWindow(object):
         self.label.pack()
         self.entry = tk.Entry(self.window, textvariable=self.name, validate='all', validatecommand=(self.window.register(self.validate), '%P'), highlightbackground='grey')
         self.entry.pack()
-        self.enter = tk.Button(self.window, text='Ok', command=self.submit, highlightbackground='grey', background='#8877DD')
+        self.enter = tk.Button(self.window, text='Ok', command=self.submit, highlightbackground='grey', background='#9955DD')
         self.enter.pack()
         self.window.lift()
         self.window.update()
@@ -131,6 +132,7 @@ class PassWindow():
         self.parent = parent
         self.window = tk.Toplevel(parent)
         self.window.configure(background='grey')
+        self.window.bind('<Return>', lambda x: self.submit())
         self.window.resizable(height = False, width = False)
         self.window.title('AIM (Anonymous Instant Messenger)')
         self.window.attributes("-topmost", True)
@@ -153,7 +155,7 @@ class PassWindow():
         self.room_pass = tk.Entry(self.window, textvariable=self.password, validate='all', validatecommand=(self.window.register(self.validate), '%P'), highlightbackground='grey')
         self.room_pass.pack()
 
-        self.enter_button = tk.Button(self.window, text='Join Room', command=self.window.destroy, highlightbackground='grey', background='#8877DD')
+        self.enter_button = tk.Button(self.window, text='Join Room', command=self.window.destroy, highlightbackground='grey', background='#9955DD')
         self.enter_button.pack()
         self.window.lift()
         self.window.update()
@@ -199,10 +201,10 @@ class MainWindow(tk.Frame):
         self.udp_sockets = []
         self.udp_usage = []
 
-        self.name_button = tk.Button(self.parent, text = "Back to Login", command=self.handle_login, highlightbackground='grey', background='#8877DD')
-        self.refresh_button = tk.Button(self.parent, text = "Refresh Rooms", command=self.refresh, highlightbackground='grey', background='#8877DD')
-        self.join_button = tk.Button(self.parent, text = "Join", command=self.join_room, state='disabled', highlightbackground='grey', background='#8877DD')
-        self.create_button = tk.Button(self.parent, text = "Create Room", command=self.new_room, highlightbackground='grey', background='#8877DD')
+        self.name_button = tk.Button(self.parent, text = "Back to Login", command=self.handle_login, highlightbackground='grey', background='#9955DD')
+        self.refresh_button = tk.Button(self.parent, text = "Refresh Rooms", command=self.refresh, highlightbackground='grey', background='#9955DD')
+        self.join_button = tk.Button(self.parent, text = "Join", command=self.join_room, state='disabled', highlightbackground='grey', background='#9955DD')
+        self.create_button = tk.Button(self.parent, text = "Create Room", command=self.new_room, highlightbackground='grey', background='#9955DD')
 
         self.name_button.grid(row=0, column=0, sticky='nsew')
         self.refresh_button.grid(row=0, column=1, sticky='nsew')
@@ -244,6 +246,7 @@ class MainWindow(tk.Frame):
         self.selected_room.set(0)
         self.room_buttons = []
         self.rooms = []
+        self.chat_rooms = []
         self.refresh()
         self.parent.update()
 
@@ -251,12 +254,13 @@ class MainWindow(tk.Frame):
         self.parent.after(30000, self.auto_refresh)
 
     def onDestroy(self):
-        self.main_tcp.send('QUIT'.encode())
-        self.main_tcp.close()
-        for i in self.udp_sockets:
-            i[0].close()
+        if not self.chat_rooms:
+            self.main_tcp.send('QUIT'.encode())
+            self.main_tcp.close()
+            for i in self.udp_sockets:
+                i[0].close()
 
-        self.parent.destroy()
+            self.parent.destroy()
 
     def handle_login(self):
         # Open the name window. Repeats until a unused name is found.
@@ -286,7 +290,7 @@ class MainWindow(tk.Frame):
                 message = self.main_tcp.recv(1024).decode()
                 if message.split()[-1] == '0':
                     room_port = int(message.split()[-2])
-                    ChatRoomWindow(self, room_port, sock)
+                    self.chat_rooms.append(ChatRoomWindow(self, room_port, sock, len(self.chat_rooms)))
                 else:
                     messagebox.showinfo('Alert!', message[:-3], parent=self.parent)
             except Exception as e:
@@ -313,7 +317,7 @@ class MainWindow(tk.Frame):
 
                 count = str(self.rooms[i]['users']) + '/64'
 
-                self.room_buttons.append([tk.Radiobutton(self.parent, text=room, variable=self.selected_room, value=i, indicatoron=False, highlightbackground='grey', background='#8877DD'), tk.Label(self.parent, text=pass_status, highlightbackground='grey', background='grey'), tk.Label(self.parent, text=count, highlightbackground='grey', background='grey')])
+                self.room_buttons.append([tk.Radiobutton(self.parent, text=room, variable=self.selected_room, value=i, indicatoron=False, highlightbackground='grey', background='#9955DD'), tk.Label(self.parent, text=pass_status, highlightbackground='grey', background='grey'), tk.Label(self.parent, text=count, highlightbackground='grey', background='grey')])
                 self.room_buttons[i][0].grid(row=i+2, column=0, columnspan=2, sticky='nsew')
                 self.room_buttons[i][1].grid(row=i+2, column=2, sticky='nsew')
                 self.room_buttons[i][2].grid(row=i+2, column=3, sticky='nsew')
@@ -340,7 +344,7 @@ class MainWindow(tk.Frame):
                 message = self.main_tcp.recv(1024).decode()
                 if message.split()[-1] == '0':
                     room_port = int(message.split()[-2])
-                    ChatRoomWindow(self, room_port, sock)
+                    self.chat_rooms.append(ChatRoomWindow(self, room_port, sock, len(self.chat_rooms)))
                 else:
                     messagebox.showinfo('Alert!', message[:-3], parent=self.parent)
             except Exception as e:
@@ -403,10 +407,10 @@ class CreateRoomWindow():
         self.new_room_pass = tk.Entry(self.window, textvariable=self.room_pass, validate='all', validatecommand=(self.window.register(self.validate), '%P'), highlightbackground='grey')
         self.new_room_pass.grid(row=3, column=0, columnspan=2, sticky='nsew')
 
-        self.create_button = tk.Button(self.window, text='Create Room', command=self.submit, highlightbackground='grey', background='#8877DD')
+        self.create_button = tk.Button(self.window, text='Create Room', command=self.submit, highlightbackground='grey', background='#9955DD')
         self.create_button.grid(row=4, column=0, sticky='nsew')
 
-        self.return_button = tk.Button(self.window, text='Cancel', command=self.cancel, highlightbackground='grey', background='#8877DD')
+        self.return_button = tk.Button(self.window, text='Cancel', command=self.cancel, highlightbackground='grey', background='#9955DD')
         self.return_button.grid(row=4, column=1, sticky='nsew')
         self.window.lift()
         self.window.update()
@@ -438,7 +442,7 @@ class ChatRoomWindow():
     '''
     DOCS
     '''
-    def __init__(self, parent, port, sock):
+    def __init__(self, parent, port, sock, index):
         self.parent = parent
         self.window = tk.Toplevel(parent)
         self.window.configure(background='grey')
@@ -449,6 +453,7 @@ class ChatRoomWindow():
         self.window.protocol("WM_DELETE_WINDOW", self.onDestroy)
         self.port = port
         self.sock = sock
+        self.index = index
         self.open = True
         self.queue = queue.Queue()
         self.message = tk.StringVar()
@@ -459,7 +464,7 @@ class ChatRoomWindow():
         self.input = tk.Entry(self.window, textvariable=self.message, highlightbackground='grey')
         self.input.grid(row=1, column=0, columnspan=2, sticky='nsew')
 
-        self.enter_button = tk.Button(self.window, text='Enter', command=self.send_message, highlightbackground='grey', background='#8877DD')
+        self.enter_button = tk.Button(self.window, text='Enter', command=self.send_message, highlightbackground='grey', background='#9955DD')
         self.enter_button.grid(row= 1, column=2, sticky='nsew')
 
         self.rcv_thread = threading.Thread(target=self.recieve)
@@ -472,6 +477,7 @@ class ChatRoomWindow():
         self.sock[1][0].sendto('QUIT'.encode(), (self.parent.server, self.port))
         self.parent.udp_usage[self.sock[0]] = False
         self.open = False
+        del self.parent.chat_rooms[self.index]
         self.window.destroy()
 
     def recieve(self):
