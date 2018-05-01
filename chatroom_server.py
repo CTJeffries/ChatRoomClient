@@ -69,10 +69,12 @@ class ChatRoom:
                 self.last_listen_update = time.time()
                 users_to_boot = []
                 for i in self.users.keys():
-                    print((time.time() - self.user_activity[i]))
-                    if (time.time() - self.user_activity[i]) > 5:
-                        self.socket.sendto('GOODBYE 0\r\n'.encode(), i)
-                        self.queue.put(('MESSAGE ' + self.users[i] + ' has left the room due to inactivity.').encode())
+                    if (time.time() - self.user_activity[i]) > 300:
+                        try:
+                            self.socket.sendto('GOODBYE 0\r\n'.encode(), i)
+                        except Exception as e:
+                            pass
+                        self.queue.put(('MESSAGE ' + self.users[i] + ' has left the room due to inactivity.\r\n').encode())
                         users_to_boot.append(i)
 
                 for i in users_to_boot:
@@ -98,8 +100,11 @@ class ChatRoom:
                     self.queue.put(('MESSAGE ' + self.users[addr] + ': ' + data + '\r\n').encode())
 
                 elif data.split()[0] == 'QUIT':
-                    self.socket.sendto('GOODBYE 0\r\n'.encode(), addr)
-                    self.queue.put(('MESSAGE ' + self.users[addr] + ' has left the room.').encode())
+                    try:
+                        self.socket.sendto('GOODBYE 0\r\n'.encode(), addr)
+                    except Exception as e:
+                        pass
+                    self.queue.put(('MESSAGE ' + self.users[addr] + ' has left the room.\r\n').encode())
                     del self.users[addr]
                     del self.user_activity[addr]
 
@@ -119,7 +124,10 @@ class ChatRoom:
             if not self.queue.empty():
                 msg = self.queue.get()
                 for user in self.users.keys():
-                    self.socket.sendto(msg, user)
+                    try:
+                        self.socket.sendto(msg, user)
+                    except Exception as e:
+                        pass
 
 class ManagerServer:
     '''
@@ -193,11 +201,20 @@ class ManagerServer:
                             self.chat_rooms[message_tokens[2]] = ChatRoom(self, message_tokens[2], port, pas, salt)
                             self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
                             self.chat_rooms[message_tokens[2]].user_activity[new_addr] = time.time()
-                            connectionSocket.send('ChatRoom established and joined {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
+                            try:
+                                connectionSocket.send('ChatRoom established and joined {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
+                            except Exception as e:
+                                pass
                         else:
-                            connectionSocket.send('ChatRoom name in use 1\r\n'.encode())
+                            try:
+                                connectionSocket.send('ChatRoom name in use 1\r\n'.encode())
+                            except Exception as e:
+                                pass
                     else:
-                        connectionSocket.send('All ChatRoom slots full 1\r\n'.encode())
+                        try:
+                            connectionSocket.send('All ChatRoom slots full 1\r\n'.encode())
+                        except Exception as e:
+                            pass
 
                 # JOIN roomname *password*
                 # Joins a room with the given room name and password. Password is
@@ -214,19 +231,31 @@ class ManagerServer:
 
                         if (pas is None and self.chat_rooms[message_tokens[2]].password is None) or (hashlib.sha512(pas.encode() + self.chat_rooms[message_tokens[2]].salt).hexdigest() == self.chat_rooms[message_tokens[2]].password):
                             if len(self.chat_rooms[message_tokens[2]].users) < self.chat_rooms[message_tokens[2]].max_users:
-                                connectionSocket.send('Connected to chat room {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
+                                try:
+                                    connectionSocket.send('Connected to chat room {0} 0\r\n'.format(self.chat_rooms[message_tokens[2]].port).encode())
+                                except Exception as e:
+                                    pass
                                 self.chat_rooms[message_tokens[2]].users[new_addr] = self.users[addr]
                                 self.chat_rooms[message_tokens[2]].user_activity[new_addr] = time.time()
                         else:
-                            connectionSocket.send('Incorrect password 1\r\n'.encode())
+                            try:
+                                connectionSocket.send('Incorrect password 1\r\n'.encode())
+                            except Exception as e:
+                                pass
                     else:
-                        connectionSocket.send('Invlaid room 1\r\n'.encode())
+                        try:
+                            connectionSocket.send('Invlaid room 1\r\n'.encode())
+                        except Exception as e:
+                            pass
 
                 # QUIT
                 # Removes the user from the list.
                 elif message_tokens[0] == 'QUIT':
                     del self.users[addr]
-                    connectionSocket.send('Goodbye! 0\r\n'.encode())
+                    try:
+                        connectionSocket.send('Goodbye! 0\r\n'.encode())
+                    except Exception as e:
+                        pass
 
                 # INFO
                 # Returns a JSON list containing information about all of the
@@ -244,13 +273,22 @@ class ManagerServer:
 
                         dict_list.append(temp)
 
-                    connectionSocket.send(json.dumps(dict_list).encode())
+                    try:
+                        connectionSocket.send(json.dumps(dict_list).encode())
+                    except Exception as e:
+                        pass
 
                 else:
-                    connectionSocket.send('Invalid command 1\r\n'.encode())
+                    try:
+                        connectionSocket.send('Invalid command 1\r\n'.encode())
+                    except Exception as e:
+                        pass
 
             else:
-                connectionSocket.send('Invalid command 1\r\n'.encode())
+                try:
+                    connectionSocket.send('Invalid command 1\r\n'.encode())
+                except Exception as e:
+                    pass
 
 
 if __name__ == '__main__':
