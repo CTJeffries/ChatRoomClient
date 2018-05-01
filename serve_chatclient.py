@@ -13,11 +13,11 @@ def send_client_source():
 
 @app.route('/chatclient/windows')
 def send_client_windows():
-    return send_from_directory(os.getcwd(), os.path.join('dist', 'chatroom_client_windows.exe'))
+    return send_from_directory(os.getcwd(), os.path.join('dist', 'chatroom_client_windows.zip'))
 
 @app.route('/chatclient/linux')
 def send_client_linux():
-    return send_from_directory(os.getcwd(), os.path.join('dist', 'chatroom_client_linux'))
+    return send_from_directory(os.getcwd(), os.path.join('dist', 'chatroom_client_linux.zip'))
 
 @app.route('/chatclient/mac')
 def send_client_mac():
