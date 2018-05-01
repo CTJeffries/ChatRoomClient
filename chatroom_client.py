@@ -10,6 +10,60 @@ import json
 import sys
 import queue
 import time
+import os
+
+
+class IPWindow(object):
+    '''
+    DOCS
+    '''
+    def __init__(self, parent):
+        self.parent = parent
+        self.window = tk.Toplevel(parent)
+        self.window.configure(background='grey')
+        self.window.resizable(height = False, width = False)
+        self.window.title('AIM (Anonymous Instant Messenger)')
+        self.window.attributes("-topmost", True)
+        self.window.grab_set()
+        self.window.protocol("WM_DELETE_WINDOW", self.onDestroy)
+        self.ip = tk.StringVar()
+        self.ip.set('')
+
+        self.cancelled = False
+
+        RWidth = root.winfo_screenwidth()
+        RHeight = root.winfo_screenheight()
+        WindowWidth = 200
+        WindowHeight = 100
+        self.window.geometry(("%dx%d+%d+%d")%(WindowWidth,WindowHeight,(RWidth/2)-(WindowWidth/2),(RHeight/2)-(WindowHeight/2)))
+
+        self.label = tk.Label(self.window, text='Enter server IP', highlightbackground='grey', background='grey')
+        self.label.pack()
+
+        self.server_ip = tk.Entry(self.window, textvariable=self.ip, validate='all', validatecommand=(self.window.register(self.validate), '%P'), highlightbackground='grey')
+        self.server_ip.pack()
+
+        self.enter_button = tk.Button(self.window, text='Enter', command=self.window.destroy, highlightbackground='grey', background='#8877DD')
+        self.enter_button.pack()
+        self.window.lift()
+
+    def onDestroy(self):
+        self.cancelled = True
+        self.window.destroy()
+
+    def run(self):
+        self.window.wait_window()
+        self.window.grab_release()
+        if self.cancelled or self.ip.get() == '':
+            sys.exit(-1)
+        else:
+            return self.ip.get()
+
+    def validate(self, P):
+        if (len(P) <= 50) or P == '':
+            return True
+        else:
+            return False
 
 
 class LoginWindow(object):
@@ -129,32 +183,15 @@ class MainWindow(tk.Frame):
         self.parent.title('AIM (Anonymous Instant Messenger)')
         tk.Frame.__init__(self, parent)
         self.parent.protocol("WM_DELETE_WINDOW", self.onDestroy)
-        self.server = ''
-
-        with open('server.txt', 'r') as f:
-            self.server = f.readline()
-        if self.server[-1] == '\n':
-            self.server = self.server[0:-1]
-
-        try:
-            self.used_ports = []
-            self.main_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.tcp_port = random.randint(30000, 50000)
-            self.used_ports.append(self.tcp_port)
-            self.main_tcp.bind(('', self.tcp_port))
-            self.main_tcp.connect((self.server, 25000))
-        except Exception as e:
-            print(e)
-            sys.exit(-1)
-
-        self.udp_sockets = []
-        self.udp_usage = []
 
         RWidth = root.winfo_screenwidth()
         RHeight = root.winfo_screenheight()
         WindowWidth = 400
         WindowHeight = 800
         self.parent.geometry(("%dx%d+%d+%d")%(WindowWidth, WindowHeight, (RWidth/2)-(WindowWidth/2), (RHeight/2)-(WindowHeight/2)))
+
+        self.udp_sockets = []
+        self.udp_usage = []
 
         self.name_button = tk.Button(self.parent, text = "Back to Login", command=self.handle_login, highlightbackground='grey', background='#8877DD')
         self.refresh_button = tk.Button(self.parent, text = "Refresh Rooms", command=self.refresh, highlightbackground='grey', background='#8877DD')
@@ -173,6 +210,29 @@ class MainWindow(tk.Frame):
         self.name_label.grid(row=1, column=0, columnspan=2, sticky='nsew')
         self.status_label.grid(row=1, column=2, sticky='nsew')
         self.pop_label.grid(row=1, column=3, sticky='nsew')
+
+        self.server = ''
+
+        if os.path.isfile('server.txt'):
+            with open('server.txt', 'r') as f:
+                self.server = f.readline()
+
+            if self.server[-1] == '\n':
+                self.server = self.server[0:-1]
+
+        else:
+            self.server = IPWindow(self).run()
+
+        try:
+            self.used_ports = []
+            self.main_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.tcp_port = random.randint(30000, 50000)
+            self.used_ports.append(self.tcp_port)
+            self.main_tcp.bind(('', self.tcp_port))
+            self.main_tcp.connect((self.server, 25000))
+        except Exception as e:
+            print(e)
+            sys.exit(-1)
 
         self.selected_room = tk.IntVar()
         self.selected_room.set(0)
