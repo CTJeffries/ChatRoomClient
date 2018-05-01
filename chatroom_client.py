@@ -24,7 +24,7 @@ class IPWindow(object):
         self.window.resizable(height = False, width = False)
         self.window.title('AIM (Anonymous Instant Messenger)')
         self.window.attributes("-topmost", True)
-        self.window.bind('<Return>', lambda x: self.submit())
+        self.window.bind('<Return>', lambda x: self.window.destroy())
         self.window.grab_set()
         self.window.protocol("WM_DELETE_WINDOW", self.onDestroy)
         self.ip = tk.StringVar()
@@ -132,7 +132,7 @@ class PassWindow():
         self.parent = parent
         self.window = tk.Toplevel(parent)
         self.window.configure(background='grey')
-        self.window.bind('<Return>', lambda x: self.submit())
+        self.window.bind('<Return>', lambda x: self.window.destroy)
         self.window.resizable(height = False, width = False)
         self.window.title('AIM (Anonymous Instant Messenger)')
         self.window.attributes("-topmost", True)
