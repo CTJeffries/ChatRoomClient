@@ -2,10 +2,7 @@
 # chatroom_server.py
 
 '''
-This script is the server for our chatroom client.
-
-INSERT DOCS HERE
-
+Socket Server for our AIM (Anonymous Instant Messanger) application.
 '''
 
 # Modules
@@ -21,15 +18,11 @@ import queue
 
 class ChatRoom:
     '''
-    This class contains an individual chat room.
-
-    INSERT DOCS HERE
-
+    Class to hand a single chat room.
     '''
     def __init__(self, parent, name, port, password=None, salt=None):
         '''
-        CONSTRUCTOR DOCS
-
+        Initializes chat room, and starts related threads.
         '''
         self.parent = parent
         self.users = {}
@@ -55,6 +48,11 @@ class ChatRoom:
         self.monitor.start()
 
     def monitor_users(self):
+        '''
+        Monitor thread. Checks if users are active, sends alert when some one
+        joins the room.
+        '''
+        # Initially there are no users, so we wait until there are.
         while not self.users:
             pass
 
@@ -84,9 +82,11 @@ class ChatRoom:
 
     def listen(self):
         '''
-        DOCS
-
+        Listener thread. Listens for sent messages. Puts chat messages into the
+        send queue, and sends goodbye message to users that quit. When this thread
+        ends, the chat room destroys itself.
         '''
+        # Initially there are no users, so we wait until there are.
         while not self.users:
             pass
 
@@ -113,9 +113,9 @@ class ChatRoom:
 
     def send(self):
         '''
-        DOCS
-
+        Sender thread. Sends any messages in the queue to all users.
         '''
+        # Initially there are no users, so we wait until there are.
         while not self.users:
             pass
 
@@ -131,15 +131,11 @@ class ChatRoom:
 
 class ManagerServer:
     '''
-    This class contains the overall chat server.
-
-    INSERT DOCS HERE
-
+    Main class for the server. Manages all connections and users.
     '''
     def __init__(self):
         '''
-        CONSTRUCTOR DOCS
-
+        Initializes the server.
         '''
         # Initialize needed containers.
         self.chat_rooms = {}
@@ -156,12 +152,15 @@ class ManagerServer:
 
         # Infinite loop.
         while True:
-            # Accept connections, save the address.
+            # Accept connections, and spin off thread to handle messages.
             connectionSocket, addr = self.serverSocket.accept()
             thread = threading.Thread(target=self.on_new_client, args=(connectionSocket, addr))
             thread.start()
 
     def on_new_client(self, connectionSocket, addr):
+        '''
+        Thread to handle main TCP connection.
+        '''
         while True:
             message = connectionSocket.recv(1024)
             if addr not in self.users.keys():

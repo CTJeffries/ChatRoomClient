@@ -1,6 +1,10 @@
 # Colby Jeffries & Scott Stoudt
 # chatroom_client.py
 
+'''
+Old prototype commandline chat client. Should still work.
+'''
+
 import socket
 import random
 import threading
