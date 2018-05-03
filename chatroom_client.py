@@ -1,6 +1,11 @@
 # Colby Jeffries & Scott Stoudt
 # chatroom_client.py
 
+'''
+Creates the GUI for the chatroom application.
+'''
+
+#Modules
 import socket
 import random
 import threading
@@ -15,9 +20,13 @@ import os
 
 class IPWindow(object):
     '''
-    DOCS
+    Class for the start-up window. Prompts user to enter the IP for
+    connection to the server.
     '''
     def __init__(self, parent):
+        '''
+        Initializes the IPWindow and creates/packs all tkinter widgets.
+        '''
         self.parent = parent
         self.window = tk.Toplevel(parent)
         self.window.configure(background='grey')
@@ -51,10 +60,16 @@ class IPWindow(object):
         self.parent.parent.update()
 
     def onDestroy(self):
+        '''
+        Handles window destruction
+        '''
         self.cancelled = True
         self.window.destroy()
 
     def run(self):
+        '''
+        Pulls user info for the server
+        '''
         self.window.wait_window()
         self.window.grab_release()
         if self.cancelled or self.ip.get() == '':
@@ -63,6 +78,9 @@ class IPWindow(object):
             return self.ip.get()
 
     def validate(self, P):
+        '''
+        Checks user input
+        '''
         if (len(P) <= 50) or P == '':
             return True
         else:
@@ -71,9 +89,14 @@ class IPWindow(object):
 
 class LoginWindow(object):
     '''
-    DOCS
+    Class for the LoginWindow. Prompts user to enter their username or
+    enter as guest.
     '''
     def __init__(self, parent):
+        '''
+        Initialzes the window the user uses to 'sign in' and give themselves
+        a nickname or a guest name.
+        '''
         self.parent = parent
         self.window = tk.Toplevel(parent)
         self.window.configure(background='grey')
@@ -116,6 +139,10 @@ class LoginWindow(object):
             return False
 
     def submit(self):
+        '''
+        Closes the current panel and makes the main window able to be
+        interacted with
+        '''
         self.window.destroy()
 
     def run(self):
@@ -126,9 +153,15 @@ class LoginWindow(object):
 
 class PassWindow():
     '''
-    DOCS
+    Class for the PassWindow. Prompts user to enter the password for
+    closed chatrooms.
     '''
     def __init__(self, parent):
+        '''
+        Initializes the window for entering a password to join a password
+        protected room. Creates all tkinter widgets and arranges them
+        appropriatly
+        '''
         self.parent = parent
         self.window = tk.Toplevel(parent)
         self.window.configure(background='grey')
@@ -182,9 +215,15 @@ class PassWindow():
 
 class MainWindow(tk.Frame):
     '''
-    DOCS
+    Class for the main window of the program. This window remains open for the
+    entirety of the application.
     '''
     def __init__(self, parent):
+        '''
+        Initializes the main window where users can view the already created
+        rooms, join selected rooms, create new rooms, or change their usernames.
+        Creates all tkinter widgets and arranges them appropriatly
+        '''
         self.parent = parent
         self.parent.configure(background='grey')
         self.parent.resizable(height = False, width = False)
@@ -265,7 +304,9 @@ class MainWindow(tk.Frame):
             self.parent.destroy()
 
     def handle_login(self):
-        # Open the name window. Repeats until a unused name is found.
+        '''
+        Open the name window. Repeats until a unused name is found.
+        '''
         ok = 1
         name = LoginWindow(self).run()
         while ok == 1:
@@ -283,7 +324,9 @@ class MainWindow(tk.Frame):
                 ok = 0
 
     def new_room(self):
-        # Open new room window, then when its complete, open chatroom window.
+        '''
+        Open new room window, then when its complete, open chatroom window.
+        '''
         room = CreateRoomWindow(self).run()
         if room is not None:
             sock = self.get_sock()
@@ -299,6 +342,9 @@ class MainWindow(tk.Frame):
                 print(e)
 
     def refresh(self):
+        '''
+        Refreshes the radio buttons to match the rooms that have been created.
+        '''
         for i in self.room_buttons:
             for j in i:
                 j.grid_forget()
@@ -333,7 +379,9 @@ class MainWindow(tk.Frame):
             print(e)
 
     def join_room(self):
-        # Open pass window if there is a password, if not, open chat window.
+        '''
+        Open pass window if there is a password, if not, open chat window.
+        '''
         sock = self.get_sock()
         if self.rooms[self.selected_room.get()]['pass']:
             passwrd = PassWindow(self).run()
@@ -353,6 +401,9 @@ class MainWindow(tk.Frame):
                 print(e)
 
     def generate_udp_port(self):
+        '''
+        DOCS
+        '''
         new_port = random.randint(30000, 50000)
         while new_port in self.used_ports:
             new_port = random.randint(30000, 50000)
@@ -363,6 +414,9 @@ class MainWindow(tk.Frame):
         self.udp_sockets[-1][0].bind(('', new_port))
 
     def get_sock(self):
+        '''
+        DOCS
+        '''
         for i in range(len(self.udp_sockets)):
             if self.udp_usage[i] == False:
                 self.udp_usage[i] = True
@@ -373,15 +427,25 @@ class MainWindow(tk.Frame):
         return (len(self.udp_sockets) - 1, self.udp_sockets[-1])
 
     def auto_refresh(self):
+        '''
+        Auto refreshes the radio buttons that map to open chat rooms.
+        Same function as the refresh button only it is automatic and
+        only happens after a set period of time.
+        '''
         self.refresh()
         self.parent.after(30000, self.auto_refresh)
 
 
 class CreateRoomWindow():
     '''
-    DOCS
+    Class for the CreateRoomWindow. Prompts user to enter a name and (optional)
+    password for the create of a new chatroom.
     '''
     def __init__(self, parent):
+        '''
+        Initializes the window that allows the user to create their own rooms.
+        Creates the tkinter widgets and arranges them.
+        '''
         self.parent = parent
         self.window = tk.Toplevel(parent)
         self.window.configure(background='grey')
@@ -430,6 +494,9 @@ class CreateRoomWindow():
             return (self.room_name.get(), self.room_pass.get())
 
     def cancel(self):
+        '''
+        Closes the room creation panel gracefully
+        '''
         self.cancelled = True
         self.window.destroy()
 
@@ -442,9 +509,15 @@ class CreateRoomWindow():
 
 class ChatRoomWindow():
     '''
-    DOCS
+    Class for the ChatRoomWindow. Creates a space for the user to message
+    others in the room.
     '''
     def __init__(self, parent, port, sock, index):
+        '''
+        Initializes a ChatRoomWindow, creates/sets up Tkinter widgets,
+        and establishes appropriate connections between the user and
+        designated chatroom.
+        '''
         self.parent = parent
         self.window = tk.Toplevel(parent)
         self.window.configure(background='grey')
@@ -476,6 +549,10 @@ class ChatRoomWindow():
         self.parent.parent.update()
 
     def onDestroy(self):
+        '''
+        Handles window destruction. Removes the user from the list of active
+        users.
+        '''
         self.sock[1][0].sendto('QUIT'.encode(), (self.parent.server, self.port))
         self.parent.udp_usage[self.sock[0]] = False
         self.open = False
@@ -483,6 +560,9 @@ class ChatRoomWindow():
         self.window.destroy()
 
     def recieve(self):
+        '''
+        DOCS
+        '''
         while True:
             data, addr = self.sock[1][0].recvfrom(1024)
             data = data.decode()
@@ -495,10 +575,19 @@ class ChatRoomWindow():
                 break
 
     def send_message(self):
+        '''
+        Sends the text from the text window to the server.
+        Clears the text window to prepare for the next message.
+        '''
         self.sock[1][0].sendto(('MESSAGE ' + self.message.get()).encode(), (self.parent.server, self.port))
         self.message.set('')
 
     def check(self):
+        '''
+        Used to check for new messages that have been sent to the chatroomself.
+        When found, the new message is received and added to the message window.
+        Function runs recursivly while the chatroom window is open.
+        '''
         if not self.queue.empty():
             self.chat_box.config(state='normal')
             self.chat_box.insert('end', self.queue.get() + '\n')
