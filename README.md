@@ -41,7 +41,7 @@ We recommend hosting both the server and flask app on the AWS server so that
 it can be accessed around the world, and users do not need python to run it.
 The flask app can be run with:
 
-`python3 server_chatclient.py.`
+`python3 serve_chatclient.py.`
 
 Flask apps are not really great for high traffic situations, but we believe that
 our chat application would be overwhelmed well before the Flask app would be.
