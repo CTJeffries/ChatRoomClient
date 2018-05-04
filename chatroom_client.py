@@ -5,7 +5,7 @@
 Creates the GUI for the chatroom application.
 '''
 
-#Modules
+# Modules
 import socket
 import random
 import threading
@@ -294,6 +294,10 @@ class MainWindow(tk.Frame):
         self.parent.after(30000, self.auto_refresh)
 
     def onDestroy(self):
+        '''
+        Cleans up connections when main window is closed. The main window can
+        only be closed if no chat rooms are open.
+        '''
         if not self.chat_rooms:
             if self.main_tcp:
                 self.main_tcp.send('QUIT'.encode())
@@ -402,7 +406,8 @@ class MainWindow(tk.Frame):
 
     def generate_udp_port(self):
         '''
-        DOCS
+        If a new udp port is needed (all currently generated ports are in use),
+        this function will generate a new udp port and return it.
         '''
         new_port = random.randint(30000, 50000)
         while new_port in self.used_ports:
@@ -415,7 +420,8 @@ class MainWindow(tk.Frame):
 
     def get_sock(self):
         '''
-        DOCS
+        This function will get an available udp port. If none are available,
+        a new one is generated.
         '''
         for i in range(len(self.udp_sockets)):
             if self.udp_usage[i] == False:
@@ -561,7 +567,9 @@ class ChatRoomWindow():
 
     def recieve(self):
         '''
-        DOCS
+        Thread function that recieves messages. If the message is a MESSAGE, it
+        puts int into the queue to display. If it is a GOODBYE message, the chat
+        room is destroyed.
         '''
         while True:
             data, addr = self.sock[1][0].recvfrom(1024)
@@ -584,9 +592,10 @@ class ChatRoomWindow():
 
     def check(self):
         '''
-        Used to check for new messages that have been sent to the chatroomself.
-        When found, the new message is received and added to the message window.
-        Function runs recursivly while the chatroom window is open.
+        Checks the new message queue for messages. If a message is present, it
+        is displayed. This function runs every 100ms. It cannot be put into a
+        thread because Tkinter does not like its objects being accessed from
+        other threads.
         '''
         if not self.queue.empty():
             self.chat_box.config(state='normal')
